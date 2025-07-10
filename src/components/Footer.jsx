@@ -20,7 +20,7 @@ const Footer = () => {
             </div>
             <p className="text-gray-400 mb-4 max-w-md">
               The leading B2B marketplace for ITAD companies and brokers to trade 
-              second-hand and new computer equipment efficiently and securely.
+              second-hand and new IT equipment efficiently and securely.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-white transition-colors">
@@ -81,7 +81,7 @@ const Footer = () => {
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <p className="text-gray-400">
-            © 2024 revend.co. All rights reserved. | Privacy Policy | Terms of Service
+            © 2025 revend.co by BVB. All rights reserved. | Privacy Policy | Terms of Service
           </p>
         </div>
       </div>
