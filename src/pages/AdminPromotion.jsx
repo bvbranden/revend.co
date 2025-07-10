@@ -19,6 +19,48 @@ const AdminPromotion = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
+      // First check if the table exists
+      const { data: tablesData, error: tablesError } = await supabase
+        .from('pg_tables')
+        .select('tablename')
+        .eq('schemaname', 'public')
+        .eq('tablename', 'profiles_revend');
+      
+      if (tablesError) {
+        console.error('Error checking tables:', tablesError);
+        setError('Error checking database tables');
+        setLoading(false);
+        return;
+      }
+      
+      if (!tablesData || tablesData.length === 0) {
+        console.log('Creating profiles_revend table...');
+        // Create the table if it doesn't exist
+        const { error: createError } = await supabase.rpc('exec', { 
+          query: `
+            CREATE TABLE IF NOT EXISTS profiles_revend (
+              id UUID PRIMARY KEY REFERENCES auth.users(id),
+              name TEXT,
+              email TEXT,
+              avatar TEXT,
+              company TEXT,
+              role TEXT,
+              is_company_admin BOOLEAN DEFAULT FALSE,
+              created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+              updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+            );
+          `
+        });
+        
+        if (createError) {
+          console.error('Error creating profiles_revend table:', createError);
+          setError('Failed to create profiles_revend table. Please contact support.');
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Now fetch users
       const { data, error } = await supabase
         .from('profiles_revend')
         .select('id, name, email, role')
@@ -43,30 +85,21 @@ const AdminPromotion = () => {
     setSuccess('');
     
     try {
-      // First check if user exists
-      const { data: userData, error: userError } = await supabase
-        .from('auth.users')
-        .select('id, email')
+      // Update user in profiles table
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles_revend')
+        .update({ role: 'admin' })
         .eq('email', email)
-        .single();
+        .select();
       
-      if (userError) {
-        if (userError.code === 'PGRST116') {
-          setError(`No user found with email: ${email}`);
-        } else {
-          throw userError;
-        }
-        return;
+      if (profileError) throw profileError;
+      
+      if (profileData && profileData.length > 0) {
+        setSuccess(`User ${email} promoted to admin successfully!`);
+        fetchUsers();
+      } else {
+        setError(`No user found with email: ${email}`);
       }
-      
-      // Call our function to promote user
-      const { data, error } = await supabase
-        .rpc('promote_to_admin', { email_to_promote: email });
-      
-      if (error) throw error;
-      
-      setSuccess(data || `User ${email} promoted to admin successfully!`);
-      fetchUsers();
     } catch (err) {
       console.error('Error promoting user:', err);
       setError(err.message || 'Failed to promote user');
@@ -105,8 +138,10 @@ const AdminPromotion = () => {
           .insert({
             id: authData.user.id,
             name: 'Admin User',
+            email: email,
             role: 'admin',
             is_company_admin: true,
+            company: 'Admin Company',
             avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
           });
           
@@ -118,6 +153,115 @@ const AdminPromotion = () => {
     } catch (err) {
       console.error('Error creating admin:', err);
       setError(err.message || 'Failed to create admin user');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const setupDatabase = async () => {
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    
+    try {
+      // Create necessary tables
+      const queries = [
+        `
+        CREATE TABLE IF NOT EXISTS profiles_revend (
+          id UUID PRIMARY KEY REFERENCES auth.users(id),
+          name TEXT,
+          email TEXT,
+          avatar TEXT, 
+          company TEXT,
+          role TEXT,
+          is_company_admin BOOLEAN DEFAULT FALSE,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        );
+        `,
+        `
+        CREATE TABLE IF NOT EXISTS companies_revend (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          name TEXT NOT NULL,
+          website TEXT,
+          status TEXT DEFAULT 'pending',
+          verification_documents JSONB,
+          verification_notes TEXT,
+          verified_at TIMESTAMP WITH TIME ZONE,
+          verified_by UUID REFERENCES profiles_revend(id),
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        );
+        `,
+        `
+        CREATE TABLE IF NOT EXISTS products_revend (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          title TEXT NOT NULL,
+          description TEXT,
+          category TEXT,
+          condition TEXT,
+          price NUMERIC NOT NULL,
+          quantity INTEGER NOT NULL,
+          location TEXT,
+          seller TEXT,
+          specs JSONB,
+          image TEXT,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        );
+        `,
+        `
+        CREATE TABLE IF NOT EXISTS messages_revend (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          sender_id UUID REFERENCES profiles_revend(id),
+          receiver_id UUID REFERENCES profiles_revend(id),
+          content TEXT NOT NULL,
+          is_read BOOLEAN DEFAULT FALSE,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        );
+        `,
+        `
+        CREATE TABLE IF NOT EXISTS notifications_revend (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID REFERENCES profiles_revend(id),
+          title TEXT NOT NULL,
+          content TEXT,
+          type TEXT,
+          is_read BOOLEAN DEFAULT FALSE,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        );
+        `,
+        `
+        ALTER TABLE profiles_revend ENABLE ROW LEVEL SECURITY;
+        CREATE POLICY "Users can view their own profile" ON profiles_revend 
+          FOR SELECT USING (auth.uid() = id);
+        CREATE POLICY "Users can update their own profile" ON profiles_revend 
+          FOR UPDATE USING (auth.uid() = id);
+        CREATE POLICY "Admins can view all profiles" ON profiles_revend 
+          FOR SELECT USING (
+            auth.uid() IN (SELECT id FROM profiles_revend WHERE role = 'admin')
+          );
+        CREATE POLICY "Admins can update all profiles" ON profiles_revend 
+          FOR UPDATE USING (
+            auth.uid() IN (SELECT id FROM profiles_revend WHERE role = 'admin')
+          );
+        `
+      ];
+      
+      for (const query of queries) {
+        const { error } = await supabase.rpc('exec', { query });
+        if (error) {
+          console.error('Database setup error:', error);
+          setError(`Database setup error: ${error.message}`);
+          return;
+        }
+      }
+      
+      setSuccess('Database setup completed successfully!');
+      fetchUsers();
+    } catch (err) {
+      console.error('Error setting up database:', err);
+      setError(err.message || 'Failed to set up database');
     } finally {
       setLoading(false);
     }
@@ -141,6 +285,20 @@ const AdminPromotion = () => {
             <span>{success}</span>
           </div>
         )}
+        
+        <div className="mb-8">
+          <button
+            onClick={setupDatabase}
+            className="w-full px-4 py-2 bg-purple-600 text-white rounded-md shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 mb-4"
+            disabled={loading}
+          >
+            {loading ? 'Setting up...' : 'Setup/Reset Database Schema'}
+          </button>
+          <p className="text-sm text-gray-500 mb-6">
+            Click the button above to create or reset the necessary database tables.
+            This is required before you can create admin users.
+          </p>
+        </div>
         
         <form onSubmit={promoteUser} className="mb-8">
           <div className="flex items-center space-x-4 mb-4">

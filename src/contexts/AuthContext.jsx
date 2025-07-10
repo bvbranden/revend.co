@@ -20,10 +20,8 @@ export const AuthProvider = ({ children }) => {
     // Check for active session
     const checkSession = async () => {
       setIsLoading(true);
-      
       // Get current session
       const { data: { session }, error } = await supabase.auth.getSession();
-      
       if (error) {
         console.error('Error getting session:', error);
         setIsLoading(false);
@@ -35,10 +33,7 @@ export const AuthProvider = ({ children }) => {
         // Fetch user profile data
         const { data: profile, error: profileError } = await supabase
           .from('profiles_revend')
-          .select(`
-            *,
-            company:company_id(*)
-          `)
+          .select(`*`)
           .eq('id', session.user.id)
           .single();
 
@@ -66,10 +61,7 @@ export const AuthProvider = ({ children }) => {
           // Fetch user profile data
           const { data: profile, error: profileError } = await supabase
             .from('profiles_revend')
-            .select(`
-              *,
-              company:company_id(*)
-            `)
+            .select(`*`)
             .eq('id', newSession.user.id)
             .single();
 
@@ -110,29 +102,6 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     const { name, email, password, company, role } = userData;
 
-    // First, create or get company
-    let companyId = null;
-    if (company) {
-      const { data: existingCompany } = await supabase
-        .from('companies_revend')
-        .select('id')
-        .eq('name', company)
-        .single();
-
-      if (existingCompany) {
-        companyId = existingCompany.id;
-      } else {
-        const { data: newCompany, error: companyError } = await supabase
-          .from('companies_revend')
-          .insert({ name: company })
-          .select('id')
-          .single();
-
-        if (companyError) throw companyError;
-        companyId = newCompany.id;
-      }
-    }
-
     // Register user with Supabase Auth
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -156,7 +125,8 @@ export const AuthProvider = ({ children }) => {
       .insert({
         id: data.user.id,
         name,
-        company_id: companyId,
+        email,
+        company,
         role: role || 'user',
         is_company_admin: role === 'company_admin',
         avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',

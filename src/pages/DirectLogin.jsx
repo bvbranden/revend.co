@@ -18,7 +18,6 @@ const DirectLogin = () => {
       try {
         // Check if already signed in
         const { data: { session } } = await supabase.auth.getSession();
-        
         if (session) {
           setMessage('Already signed in! Redirecting to admin dashboard...');
           setTimeout(() => {
@@ -26,7 +25,7 @@ const DirectLogin = () => {
           }, 2000);
           return;
         }
-        
+
         // Try to sign in
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email: 'admin@revend.co',
@@ -82,7 +81,6 @@ const DirectLogin = () => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-    
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email: 'admin@revend.co',
@@ -143,7 +141,7 @@ const DirectLogin = () => {
                     Email: admin@revend.co<br />
                     Password: Admin@123
                   </p>
-                  <button 
+                  <button
                     type="submit"
                     className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     disabled={isLoading}
