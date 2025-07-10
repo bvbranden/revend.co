@@ -5,12 +5,11 @@ import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
 import { useAuth } from '../contexts/AuthContext';
 
-const { FiUser, FiMail, FiLock, FiBriefcase, FiAlertCircle } = FiIcons;
+const { FiUser, FiMail, FiLock, FiBriefcase, FiAlertCircle, FiCheck } = FiIcons;
 
 const Register = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
-  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -20,11 +19,15 @@ const Register = () => {
     role: 'broker'
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const validateForm = () => {
@@ -32,31 +35,32 @@ const Register = () => {
       setError('Passwords do not match');
       return false;
     }
-    
     if (formData.password.length < 6) {
       setError('Password must be at least 6 characters');
       return false;
     }
-    
     return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
     if (!validateForm()) {
       return;
     }
-    
+
     setIsLoading(true);
-    
     try {
       const { confirmPassword, ...registerData } = formData;
       await register(registerData);
-      navigate('/marketplace');
+      
+      // No need to wait for email confirmation
+      setSuccess('Account created successfully!');
+      setTimeout(() => {
+        navigate('/marketplace');
+      }, 1500);
     } catch (err) {
-      setError(err.message || 'Failed to create account.');
+      setError(err.message || 'Failed to create account. Please check your credentials.');
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -85,14 +89,21 @@ const Register = () => {
             </Link>
           </p>
         </div>
-        
+
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center">
             <SafeIcon icon={FiAlertCircle} className="w-5 h-5 mr-2 text-red-500" />
             <span>{error}</span>
           </div>
         )}
-        
+
+        {success && (
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center">
+            <SafeIcon icon={FiCheck} className="w-5 h-5 mr-2 text-green-500" />
+            <span>{success}</span>
+          </div>
+        )}
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
@@ -115,7 +126,7 @@ const Register = () => {
                 />
               </div>
             </div>
-            
+
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email address
@@ -137,7 +148,7 @@ const Register = () => {
                 />
               </div>
             </div>
-            
+
             <div>
               <label htmlFor="company" className="block text-sm font-medium text-gray-700">
                 Company Name
@@ -158,7 +169,7 @@ const Register = () => {
                 />
               </div>
             </div>
-            
+
             <div>
               <label htmlFor="role" className="block text-sm font-medium text-gray-700">
                 Role
@@ -175,7 +186,7 @@ const Register = () => {
                 <option value="reseller">Reseller</option>
               </select>
             </div>
-            
+
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
@@ -196,7 +207,7 @@ const Register = () => {
                 />
               </div>
             </div>
-            
+
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
                 Confirm Password
