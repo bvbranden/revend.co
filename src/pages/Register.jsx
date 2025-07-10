@@ -10,6 +10,7 @@ const { FiUser, FiMail, FiLock, FiBriefcase, FiAlertCircle } = FiIcons;
 const Register = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -23,10 +24,7 @@ const Register = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const validateForm = () => {
@@ -58,7 +56,7 @@ const Register = () => {
       await register(registerData);
       navigate('/marketplace');
     } catch (err) {
-      setError('Failed to create account.');
+      setError(err.message || 'Failed to create account.');
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -67,7 +65,7 @@ const Register = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-md"

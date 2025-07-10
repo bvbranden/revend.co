@@ -5,6 +5,7 @@ import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
 import { useProducts } from '../contexts/ProductContext';
 import { useAuth } from '../contexts/AuthContext';
+import supabase from '../lib/supabase';
 
 const { FiUpload, FiX, FiDollarSign, FiPackage } = FiIcons;
 
@@ -25,57 +26,116 @@ const SellEquipment = () => {
   });
   const [images, setImages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSpecChange = (key, value) => {
     setFormData(prev => ({
       ...prev,
-      specs: {
-        ...prev.specs,
-        [key]: value
-      }
+      specs: { ...prev.specs, [key]: value }
     }));
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
-    // In a real app, you would upload to a cloud service
-    const mockImages = files.map(file => ({
-      id: Date.now() + Math.random(),
-      url: URL.createObjectURL(file),
-      file
-    }));
-    setImages(prev => [...prev, ...mockImages]);
+    setIsLoading(true);
+    
+    try {
+      const uploadedImages = [];
+      
+      for (const file of files) {
+        // Create a unique file name
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+        const filePath = `product-images/${fileName}`;
+        
+        // Upload to Supabase Storage
+        const { error } = await supabase.storage
+          .from('revend-images')
+          .upload(filePath, file);
+          
+        if (error) {
+          console.error('Error uploading image:', error);
+          throw error;
+        }
+        
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('revend-images')
+          .getPublicUrl(filePath);
+          
+        uploadedImages.push({
+          id: fileName,
+          url: publicUrl,
+          path: filePath
+        });
+      }
+      
+      setImages(prev => [...prev, ...uploadedImages]);
+    } catch (err) {
+      setError('Error uploading images. Please try again.');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const removeImage = (id) => {
-    setImages(prev => prev.filter(img => img.id !== id));
+  const removeImage = async (id, path) => {
+    try {
+      // Remove from Supabase Storage
+      if (path) {
+        const { error } = await supabase.storage
+          .from('revend-images')
+          .remove([path]);
+          
+        if (error) {
+          console.error('Error removing image:', error);
+        }
+      }
+      
+      // Remove from state
+      setImages(prev => prev.filter(img => img.id !== id));
+    } catch (err) {
+      console.error('Error removing image:', err);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-
+    setError('');
+    
     try {
+      if (!user) {
+        throw new Error('You must be logged in to sell equipment');
+      }
+      
+      if (images.length === 0) {
+        throw new Error('Please upload at least one image');
+      }
+      
       const newProduct = {
-        ...formData,
+        title: formData.title,
+        category: formData.category,
+        condition: formData.condition,
         price: parseFloat(formData.price),
         quantity: parseInt(formData.quantity),
-        seller: user?.company || 'Your Company',
-        image: images[0]?.url || 'https://images.unsplash.com/photo-1547082299-de196ea013d6?w=400&h=300&fit=crop'
+        location: formData.location,
+        description: formData.description,
+        specs: formData.specs,
+        seller: user.company,
+        image: images[0].url  // Use first image as main image
       };
-
+      
       await addProduct(newProduct);
       navigate('/marketplace');
-    } catch (error) {
-      console.error('Error creating product:', error);
+    } catch (err) {
+      setError(err.message || 'Error creating listing. Please try again.');
+      console.error('Error creating product:', err);
     } finally {
       setIsLoading(false);
     }
@@ -123,10 +183,7 @@ const SellEquipment = () => {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Please Login</h2>
           <p className="text-gray-600 mb-6">You need to be logged in to sell equipment.</p>
-          <button
-            onClick={() => navigate('/login')}
-            className="btn-primary"
-          >
+          <button onClick={() => navigate('/login')} className="btn-primary">
             Login
           </button>
         </div>
@@ -148,7 +205,13 @@ const SellEquipment = () => {
               Reach thousands of verified buyers in our B2B marketplace
             </p>
           </div>
-
+          
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+              {error}
+            </div>
+          )}
+          
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Basic Information */}
             <div>
@@ -166,7 +229,6 @@ const SellEquipment = () => {
                     placeholder="Dell OptiPlex 7090 Desktop"
                   />
                 </div>
-
                 <div>
                   <label className="form-label">Category</label>
                   <select
@@ -182,7 +244,6 @@ const SellEquipment = () => {
                     ))}
                   </select>
                 </div>
-
                 <div>
                   <label className="form-label">Condition</label>
                   <select
@@ -198,7 +259,6 @@ const SellEquipment = () => {
                     <option value="Used">Used</option>
                   </select>
                 </div>
-
                 <div>
                   <label className="form-label">Location</label>
                   <input
@@ -221,9 +281,9 @@ const SellEquipment = () => {
                 <div>
                   <label className="form-label">Price per Unit ($)</label>
                   <div className="relative">
-                    <SafeIcon 
-                      icon={FiDollarSign} 
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" 
+                    <SafeIcon
+                      icon={FiDollarSign}
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"
                     />
                     <input
                       type="number"
@@ -238,13 +298,12 @@ const SellEquipment = () => {
                     />
                   </div>
                 </div>
-
                 <div>
                   <label className="form-label">Quantity Available</label>
                   <div className="relative">
-                    <SafeIcon 
-                      icon={FiPackage} 
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" 
+                    <SafeIcon
+                      icon={FiPackage}
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"
                     />
                     <input
                       type="number"
@@ -296,15 +355,15 @@ const SellEquipment = () => {
                     onChange={handleImageUpload}
                     className="hidden"
                     id="image-upload"
+                    disabled={isLoading}
                   />
                   <label
                     htmlFor="image-upload"
-                    className="btn-primary cursor-pointer"
+                    className={`btn-primary cursor-pointer inline-block ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
-                    Choose Files
+                    {isLoading ? 'Uploading...' : 'Choose Files'}
                   </label>
                 </div>
-
                 {images.length > 0 && (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {images.map(image => (
@@ -316,7 +375,7 @@ const SellEquipment = () => {
                         />
                         <button
                           type="button"
-                          onClick={() => removeImage(image.id)}
+                          onClick={() => removeImage(image.id, image.path)}
                           className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
                         >
                           <SafeIcon icon={FiX} className="w-4 h-4" />
@@ -348,6 +407,7 @@ const SellEquipment = () => {
                 type="button"
                 onClick={() => navigate('/marketplace')}
                 className="btn-secondary"
+                disabled={isLoading}
               >
                 Cancel
               </button>

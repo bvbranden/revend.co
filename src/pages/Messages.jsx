@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
 import { useAuth } from '../contexts/AuthContext';
+import supabase from '../lib/supabase';
 
 const { FiMessageCircle, FiSend, FiSearch, FiMoreVertical } = FiIcons;
 
@@ -10,77 +11,175 @@ const Messages = () => {
   const { user } = useAuth();
   const [selectedChat, setSelectedChat] = useState(null);
   const [newMessage, setNewMessage] = useState('');
+  const [conversations, setConversations] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const conversations = [
-    {
-      id: 1,
-      name: 'TechRecycle Pro',
-      lastMessage: 'Are these still available?',
-      time: '2m ago',
-      unread: 2,
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face'
-    },
-    {
-      id: 2,
-      name: 'Enterprise Solutions',
-      lastMessage: 'Thanks for the quick response!',
-      time: '1h ago',
-      unread: 0,
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face'
-    },
-    {
-      id: 3,
-      name: 'NetworkPro Recycling',
-      lastMessage: 'Can you provide more details?',
-      time: '3h ago',
-      unread: 1,
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b332c913?w=100&h=100&fit=crop&crop=face'
-    }
-  ];
+  useEffect(() => {
+    if (!user) return;
 
-  const messages = selectedChat ? [
-    {
-      id: 1,
-      sender: 'TechRecycle Pro',
-      message: 'Hi, I\'m interested in your Dell OptiPlex listing. Are these still available?',
-      time: '10:30 AM',
-      isUser: false
-    },
-    {
-      id: 2,
-      sender: 'You',
-      message: 'Yes, they are still available. We have 25 units in stock.',
-      time: '10:32 AM',
-      isUser: true
-    },
-    {
-      id: 3,
-      sender: 'TechRecycle Pro',
-      message: 'Great! Can you provide more details about the condition and any warranty?',
-      time: '10:35 AM',
-      isUser: false
-    },
-    {
-      id: 4,
-      sender: 'You',
-      message: 'All units are professionally refurbished with 90-day warranty. They include original power cables and have been tested for functionality.',
-      time: '10:37 AM',
-      isUser: true
-    },
-    {
-      id: 5,
-      sender: 'TechRecycle Pro',
-      message: 'Perfect! What\'s the best price for bulk purchase of all 25 units?',
-      time: '10:40 AM',
-      isUser: false
-    }
-  ] : [];
+    const fetchConversations = async () => {
+      setIsLoading(true);
+      try {
+        // In a real app, you'd query a conversations or messages table
+        // This is a simplified version that just fetches distinct users who have messaged with the current user
+        const { data, error } = await supabase
+          .from('messages_revend')
+          .select('sender_id, receiver_id, created_at')
+          .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+          .order('created_at', { ascending: false });
 
-  const handleSendMessage = (e) => {
+        if (error) {
+          console.error('Error fetching conversations:', error);
+          return;
+        }
+
+        // Get unique user IDs from conversations
+        const uniqueUserIds = new Set();
+        data.forEach(msg => {
+          const otherId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
+          uniqueUserIds.add(otherId);
+        });
+
+        // Fetch user profiles for these IDs
+        if (uniqueUserIds.size > 0) {
+          const { data: profiles, error: profilesError } = await supabase
+            .from('profiles_revend')
+            .select('*')
+            .in('id', Array.from(uniqueUserIds));
+
+          if (profilesError) {
+            console.error('Error fetching profiles:', profilesError);
+            return;
+          }
+
+          // Create conversation objects
+          const conversationsData = profiles.map(profile => ({
+            id: profile.id,
+            name: profile.name,
+            company: profile.company,
+            avatar: profile.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
+            lastMessage: 'Click to view conversation',
+            time: '...',
+            unread: 0
+          }));
+
+          setConversations(conversationsData);
+        }
+      } catch (err) {
+        console.error('Error in fetchConversations:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchConversations();
+  }, [user]);
+
+  useEffect(() => {
+    if (!selectedChat || !user) return;
+
+    const fetchMessages = async () => {
+      const { data, error } = await supabase
+        .from('messages_revend')
+        .select('*')
+        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${selectedChat}),and(sender_id.eq.${selectedChat},receiver_id.eq.${user.id})`)
+        .order('created_at');
+
+      if (error) {
+        console.error('Error fetching messages:', error);
+        return;
+      }
+
+      // Format messages for display
+      const formattedMessages = data.map(msg => ({
+        id: msg.id,
+        sender: msg.sender_id === user.id ? 'You' : conversations.find(c => c.id === selectedChat)?.name || 'User',
+        message: msg.content,
+        time: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isUser: msg.sender_id === user.id
+      }));
+
+      setMessages(formattedMessages);
+
+      // Mark messages as read
+      if (data.some(msg => !msg.is_read && msg.receiver_id === user.id)) {
+        await supabase
+          .from('messages_revend')
+          .update({ is_read: true })
+          .eq('receiver_id', user.id)
+          .eq('sender_id', selectedChat);
+      }
+    };
+
+    fetchMessages();
+
+    // Subscribe to new messages
+    const messagesSubscription = supabase
+      .channel('messages_changes')
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages_revend', filter: `receiver_id=eq.${user.id}` },
+        (payload) => {
+          // Refresh messages if the current conversation is selected
+          if (selectedChat === payload.new.sender_id) {
+            fetchMessages();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(messagesSubscription);
+    };
+  }, [selectedChat, user, conversations]);
+
+  const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (newMessage.trim()) {
-      // Add message logic here
+    
+    if (!newMessage.trim() || !user || !selectedChat) {
+      return;
+    }
+    
+    try {
+      const { error } = await supabase
+        .from('messages_revend')
+        .insert({
+          sender_id: user.id,
+          receiver_id: selectedChat,
+          content: newMessage.trim()
+        });
+      
+      if (error) {
+        console.error('Error sending message:', error);
+        return;
+      }
+      
       setNewMessage('');
+      
+      // Refresh messages
+      const { data, error: fetchError } = await supabase
+        .from('messages_revend')
+        .select('*')
+        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${selectedChat}),and(sender_id.eq.${selectedChat},receiver_id.eq.${user.id})`)
+        .order('created_at');
+      
+      if (fetchError) {
+        console.error('Error fetching messages:', fetchError);
+        return;
+      }
+      
+      // Format messages for display
+      const formattedMessages = data.map(msg => ({
+        id: msg.id,
+        sender: msg.sender_id === user.id ? 'You' : conversations.find(c => c.id === selectedChat)?.name || 'User',
+        message: msg.content,
+        time: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isUser: msg.sender_id === user.id
+      }));
+      
+      setMessages(formattedMessages);
+    } catch (err) {
+      console.error('Error in handleSendMessage:', err);
     }
   };
 
@@ -105,10 +204,7 @@ const Messages = () => {
               <div className="p-4 border-b border-gray-200">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Messages</h2>
                 <div className="relative">
-                  <SafeIcon 
-                    icon={FiSearch} 
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" 
-                  />
+                  <SafeIcon icon={FiSearch} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
                     type="text"
                     placeholder="Search conversations..."
@@ -116,44 +212,54 @@ const Messages = () => {
                   />
                 </div>
               </div>
-
               <div className="flex-1 overflow-y-auto">
-                {conversations.map(conversation => (
-                  <motion.div
-                    key={conversation.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    onClick={() => setSelectedChat(conversation.id)}
-                    className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
-                      selectedChat === conversation.id ? 'bg-blue-50 border-blue-200' : ''
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <img
-                        src={conversation.avatar}
-                        alt={conversation.name}
-                        className="w-12 h-12 rounded-full object-cover"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-sm font-medium text-gray-900 truncate">
-                            {conversation.name}
-                          </h3>
-                          <span className="text-xs text-gray-500">{conversation.time}</span>
+                {isLoading ? (
+                  <div className="flex justify-center items-center h-32">
+                    <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : conversations.length > 0 ? (
+                  conversations.map(conversation => (
+                    <motion.div
+                      key={conversation.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      onClick={() => setSelectedChat(conversation.id)}
+                      className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
+                        selectedChat === conversation.id ? 'bg-blue-50 border-blue-200' : ''
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <img
+                          src={conversation.avatar}
+                          alt={conversation.name}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-medium text-gray-900 truncate">
+                              {conversation.name}
+                            </h3>
+                            <span className="text-xs text-gray-500">{conversation.time}</span>
+                          </div>
+                          <p className="text-sm text-gray-600 truncate">{conversation.lastMessage}</p>
                         </div>
-                        <p className="text-sm text-gray-600 truncate">{conversation.lastMessage}</p>
+                        {conversation.unread > 0 && (
+                          <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-medium text-white bg-blue-600 rounded-full">
+                            {conversation.unread}
+                          </span>
+                        )}
                       </div>
-                      {conversation.unread > 0 && (
-                        <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-medium text-white bg-blue-600 rounded-full">
-                          {conversation.unread}
-                        </span>
-                      )}
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <SafeIcon icon={FiMessageCircle} className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-500">No conversations yet</p>
+                  </div>
+                )}
               </div>
             </div>
-
+            
             {/* Chat Area */}
             <div className="flex-1 flex flex-col">
               {selectedChat ? (
@@ -177,34 +283,46 @@ const Messages = () => {
                       <SafeIcon icon={FiMoreVertical} className="w-5 h-5" />
                     </button>
                   </div>
-
+                  
                   {/* Messages */}
                   <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    {messages.map(message => (
-                      <motion.div
-                        key={message.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div
-                          className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                            message.isUser
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-200 text-gray-900'
-                          }`}
+                    {messages.length > 0 ? (
+                      messages.map(message => (
+                        <motion.div
+                          key={message.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
                         >
-                          <p className="text-sm">{message.message}</p>
-                          <p className={`text-xs mt-1 ${
-                            message.isUser ? 'text-blue-100' : 'text-gray-500'
-                          }`}>
-                            {message.time}
-                          </p>
+                          <div
+                            className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                              message.isUser
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-gray-200 text-gray-900'
+                            }`}
+                          >
+                            <p className="text-sm">{message.message}</p>
+                            <p
+                              className={`text-xs mt-1 ${
+                                message.isUser ? 'text-blue-100' : 'text-gray-500'
+                              }`}
+                            >
+                              {message.time}
+                            </p>
+                          </div>
+                        </motion.div>
+                      ))
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="text-center">
+                          <SafeIcon icon={FiMessageCircle} className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                          <p className="text-gray-500">No messages yet</p>
+                          <p className="text-sm text-gray-400 mt-1">Start the conversation</p>
                         </div>
-                      </motion.div>
-                    ))}
+                      </div>
+                    )}
                   </div>
-
+                  
                   {/* Message Input */}
                   <div className="p-4 border-t border-gray-200">
                     <form onSubmit={handleSendMessage} className="flex space-x-2">

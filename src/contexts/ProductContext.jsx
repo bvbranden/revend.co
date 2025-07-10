@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import supabase from '../lib/supabase';
 
 const ProductContext = createContext();
 
@@ -16,158 +17,88 @@ export const ProductProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Initialize with mock data
-    const mockProducts = [
-      {
-        id: '1',
-        title: 'Dell OptiPlex 7090 Desktop',
-        category: 'Desktops',
-        condition: 'Refurbished',
-        price: 450,
-        quantity: 25,
-        location: 'New York, NY',
-        seller: 'TechRecycle Pro',
-        image: 'https://images.unsplash.com/photo-1547082299-de196ea013d6?w=400&h=300&fit=crop',
-        specs: {
-          cpu: 'Intel i5-10500',
-          ram: '16GB DDR4',
-          storage: '256GB SSD',
-          gpu: 'Integrated'
-        },
-        description: 'High-quality refurbished Dell OptiPlex desktops, perfect for office environments.',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: '2',
-        title: 'HP ProBook 450 G8 Laptops',
-        category: 'Laptops',
-        condition: 'New',
-        price: 650,
-        quantity: 15,
-        location: 'Los Angeles, CA',
-        seller: 'Enterprise Solutions',
-        image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=300&fit=crop',
-        specs: {
-          cpu: 'Intel i7-1165G7',
-          ram: '16GB DDR4',
-          storage: '512GB SSD',
-          gpu: 'Intel Iris Xe'
-        },
-        description: 'Brand new HP ProBook laptops with warranty. Bulk pricing available.',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: '3',
-        title: 'Cisco Catalyst 2960 Switches',
-        category: 'Network Equipment',
-        condition: 'Used',
-        price: 120,
-        quantity: 40,
-        location: 'Chicago, IL',
-        seller: 'NetworkPro Recycling',
-        image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&h=300&fit=crop',
-        specs: {
-          ports: '24 Port',
-          speed: 'Gigabit',
-          type: 'Managed Switch',
-          poe: 'No'
-        },
-        description: 'Reliable Cisco switches, tested and certified. Perfect for small to medium networks.',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: '4',
-        title: 'Server RAM DDR4 32GB Modules',
-        category: 'Components',
-        condition: 'Refurbished',
-        price: 85,
-        quantity: 100,
-        location: 'Austin, TX',
-        seller: 'Memory Masters',
-        image: 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=400&h=300&fit=crop',
-        specs: {
-          type: 'DDR4 ECC',
-          speed: '2666MHz',
-          capacity: '32GB',
-          form: 'DIMM'
-        },
-        description: 'High-quality server memory modules, fully tested and certified.',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: '5',
-        title: 'Dell PowerEdge R740 Server',
-        category: 'Servers',
-        condition: 'Refurbished',
-        price: 2500,
-        quantity: 5,
-        location: 'Miami, FL',
-        seller: 'ServerHub Inc',
-        image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&h=300&fit=crop',
-        specs: {
-          cpu: '2x Intel Xeon Silver',
-          ram: '64GB DDR4',
-          storage: '2TB SSD',
-          raid: 'RAID 10'
-        },
-        description: 'Enterprise-grade server, perfect for data centers and virtualization.',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: '6',
-        title: 'Graphics Cards GTX 1660 Ti',
-        category: 'Components',
-        condition: 'Used',
-        price: 180,
-        quantity: 30,
-        location: 'Seattle, WA',
-        seller: 'GPU Traders',
-        image: 'https://images.unsplash.com/photo-1591488320449-011701bb6704?w=400&h=300&fit=crop',
-        specs: {
-          gpu: 'GTX 1660 Ti',
-          memory: '6GB GDDR6',
-          interface: 'PCIe 3.0',
-          power: '120W'
-        },
-        description: 'Gaming graphics cards in good condition, tested and working perfectly.',
-        createdAt: new Date().toISOString()
+    // Fetch products from Supabase
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      
+      const { data, error } = await supabase
+        .from('products_revend')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching products:', error);
+      } else {
+        setProducts(data);
+        
+        // Extract unique categories
+        const uniqueCategories = [...new Set(data.map(product => product.category))];
+        setCategories(uniqueCategories);
       }
-    ];
-
-    const mockCategories = [
-      'Desktops',
-      'Laptops',
-      'Servers',
-      'Components',
-      'Network Equipment',
-      'Storage',
-      'Monitors',
-      'Printers'
-    ];
-
-    setProducts(mockProducts);
-    setCategories(mockCategories);
-    setIsLoading(false);
+      
+      setIsLoading(false);
+    };
+    
+    fetchProducts();
+    
+    // Subscribe to changes
+    const productsSubscription = supabase
+      .channel('products_changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'products_revend' }, 
+        (payload) => {
+          // Refresh products when there's a change
+          fetchProducts();
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(productsSubscription);
+    };
   }, []);
 
-  const addProduct = (product) => {
-    const newProduct = {
-      ...product,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString()
-    };
-    setProducts(prev => [newProduct, ...prev]);
-    return newProduct;
+  const addProduct = async (product) => {
+    const { data, error } = await supabase
+      .from('products_revend')
+      .insert([product])
+      .select();
+    
+    if (error) {
+      console.error('Error adding product:', error);
+      throw error;
+    }
+    
+    // No need to manually update state as subscription will handle it
+    return data[0];
   };
 
-  const updateProduct = (id, updates) => {
-    setProducts(prev => prev.map(product => 
-      product.id === id ? { ...product, ...updates } : product
-    ));
+  const updateProduct = async (id, updates) => {
+    const { error } = await supabase
+      .from('products_revend')
+      .update(updates)
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Error updating product:', error);
+      throw error;
+    }
+    
+    // No need to manually update state as subscription will handle it
   };
 
-  const deleteProduct = (id) => {
-    setProducts(prev => prev.filter(product => product.id !== id));
+  const deleteProduct = async (id) => {
+    const { error } = await supabase
+      .from('products_revend')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Error deleting product:', error);
+      throw error;
+    }
+    
+    // No need to manually update state as subscription will handle it
   };
 
   const getProductById = (id) => {
@@ -176,36 +107,36 @@ export const ProductProvider = ({ children }) => {
 
   const searchProducts = (query, filters = {}) => {
     let filtered = products;
-
+    
     if (query) {
       filtered = filtered.filter(product => 
-        product.title.toLowerCase().includes(query.toLowerCase()) ||
+        product.title.toLowerCase().includes(query.toLowerCase()) || 
         product.description.toLowerCase().includes(query.toLowerCase())
       );
     }
-
+    
     if (filters.category) {
       filtered = filtered.filter(product => product.category === filters.category);
     }
-
+    
     if (filters.condition) {
       filtered = filtered.filter(product => product.condition === filters.condition);
     }
-
+    
     if (filters.location) {
       filtered = filtered.filter(product => 
         product.location.toLowerCase().includes(filters.location.toLowerCase())
       );
     }
-
+    
     if (filters.minPrice) {
       filtered = filtered.filter(product => product.price >= filters.minPrice);
     }
-
+    
     if (filters.maxPrice) {
       filtered = filtered.filter(product => product.price <= filters.maxPrice);
     }
-
+    
     return filtered;
   };
 
@@ -217,7 +148,7 @@ export const ProductProvider = ({ children }) => {
     updateProduct,
     deleteProduct,
     getProductById,
-    searchProducts
+    searchProducts,
   };
 
   return (
