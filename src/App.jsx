@@ -19,6 +19,7 @@ import SellEquipment from './pages/SellEquipment';
 import Profile from './pages/Profile';
 import Messages from './pages/Messages';
 import DirectLogin from './pages/DirectLogin';
+import AdminPromotion from './pages/AdminPromotion';
 
 // Admin Pages
 import Dashboard from './pages/admin/Dashboard';
@@ -34,17 +35,18 @@ import './App.css';
 const Layout = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
-  const isDirectLogin = location.pathname === '/direct-login';
+  const isSpecialRoute = location.pathname === '/direct-login' || location.pathname === '/admin-promotion';
   
-  // Don't show header/footer/sidebar for direct login
-  if (isDirectLogin) {
+  // Don't show header/footer/sidebar for special routes
+  if (isSpecialRoute) {
     return (
       <Routes>
         <Route path="/direct-login" element={<DirectLogin />} />
+        <Route path="/admin-promotion" element={<AdminPromotion />} />
       </Routes>
     );
   }
-  
+
   return (
     <div className="app-container flex flex-col min-h-screen">
       <Header />
@@ -84,6 +86,7 @@ function App() {
           <Router>
             <Routes>
               <Route path="/direct-login" element={<DirectLogin />} />
+              <Route path="/admin-promotion" element={<AdminPromotion />} />
               <Route path="/*" element={<Layout />} />
             </Routes>
           </Router>
