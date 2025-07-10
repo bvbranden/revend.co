@@ -19,8 +19,7 @@ const Footer = () => {
               <span className="text-xl font-bold">revend.co</span>
             </div>
             <p className="text-gray-400 mb-4 max-w-md">
-              The leading B2B marketplace for ITAD companies and brokers to trade 
-              second-hand and new IT equipment efficiently and securely.
+              The leading B2B marketplace for ITAD companies and brokers to trade second-hand and new IT equipment efficiently and securely.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-white transition-colors">
@@ -47,14 +46,14 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                  About Us
-                </a>
+                <Link to="/pricing" className="text-gray-400 hover:text-white transition-colors">
+                  Pricing
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                <Link to="/contact" className="text-gray-400 hover:text-white transition-colors">
                   Contact
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

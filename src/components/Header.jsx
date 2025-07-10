@@ -34,18 +34,33 @@ const Header = () => {
                 <span className="text-xl font-bold text-gray-900">revend.co</span>
               </Link>
             </div>
-            
+
             {/* Desktop Navigation */}
             <nav className="hidden md:ml-8 md:flex md:space-x-8">
-              <Link to="/marketplace" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+              <Link
+                to="/marketplace"
+                className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              >
                 Marketplace
               </Link>
-              <Link to="/sell" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+              <Link
+                to="/sell"
+                className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              >
                 Sell Equipment
               </Link>
-              <a href="#" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
-                How It Works
-              </a>
+              <Link
+                to="/pricing"
+                className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              >
+                Pricing
+              </Link>
+              <Link
+                to="/contact"
+                className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              >
+                Contact
+              </Link>
             </nav>
           </div>
 
@@ -68,16 +83,21 @@ const Header = () => {
             {/* User is logged in */}
             {user ? (
               <>
-                <Link to="/messages" className="flex items-center justify-center h-10 w-10 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none">
+                <Link
+                  to="/messages"
+                  className="flex items-center justify-center h-10 w-10 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
+                >
                   <span className="sr-only">Messages</span>
                   <SafeIcon icon={FiMessageCircle} className="h-6 w-6" />
                 </Link>
-                
-                <button className="ml-2 flex items-center justify-center h-10 w-10 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none">
+
+                <button
+                  className="ml-2 flex items-center justify-center h-10 w-10 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
+                >
                   <span className="sr-only">Notifications</span>
                   <SafeIcon icon={FiBell} className="h-6 w-6" />
                 </button>
-                
+
                 {/* Profile dropdown */}
                 <div className="ml-3 relative">
                   <div>
@@ -93,7 +113,7 @@ const Header = () => {
                       />
                     </button>
                   </div>
-                  
+
                   {/* Profile dropdown menu */}
                   {isProfileMenuOpen && (
                     <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-10">
@@ -101,7 +121,6 @@ const Header = () => {
                         <p className="text-sm font-medium text-gray-900">{user.name}</p>
                         <p className="text-sm text-gray-500 truncate">{user.email}</p>
                       </div>
-                      
                       <Link
                         to="/profile"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -109,7 +128,6 @@ const Header = () => {
                       >
                         Your Profile
                       </Link>
-                      
                       <Link
                         to="/sell"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -117,7 +135,6 @@ const Header = () => {
                       >
                         Sell Equipment
                       </Link>
-                      
                       <button
                         onClick={() => {
                           logout();
@@ -134,10 +151,7 @@ const Header = () => {
             ) : (
               /* User is not logged in */
               <div className="flex items-center space-x-4">
-                <Link
-                  to="/login"
-                  className="text-gray-500 hover:text-gray-700 font-medium"
-                >
+                <Link to="/login" className="text-gray-500 hover:text-gray-700 font-medium">
                   Log in
                 </Link>
                 <Link
@@ -148,7 +162,7 @@ const Header = () => {
                 </Link>
               </div>
             )}
-            
+
             {/* Mobile menu button */}
             <div className="flex items-center md:hidden ml-4">
               <button
@@ -181,14 +195,21 @@ const Header = () => {
             >
               Sell Equipment
             </Link>
-            <a
-              href="#"
+            <Link
+              to="/pricing"
               className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
               onClick={() => setIsMenuOpen(false)}
             >
-              How It Works
-            </a>
-            
+              Pricing
+            </Link>
+            <Link
+              to="/contact"
+              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Contact
+            </Link>
+
             {/* Mobile search */}
             <div className="px-3 py-2">
               <div className="relative">
@@ -203,13 +224,16 @@ const Header = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Mobile user menu */}
           {!user ? (
             <div className="pt-4 pb-3 border-t border-gray-200">
               <div className="flex items-center px-5">
                 <div className="flex-shrink-0">
-                  <SafeIcon icon={FiUser} className="h-10 w-10 text-gray-400 bg-gray-100 rounded-full p-2" />
+                  <SafeIcon
+                    icon={FiUser}
+                    className="h-10 w-10 text-gray-400 bg-gray-100 rounded-full p-2"
+                  />
                 </div>
                 <div className="ml-3">
                   <div className="text-base font-medium text-gray-800">Guest</div>

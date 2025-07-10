@@ -1,8 +1,8 @@
 import React from 'react';
-import {HashRouter as Router, Routes, Route, useLocation} from 'react-router-dom';
-import {AuthProvider} from './contexts/AuthContext';
-import {ProductProvider} from './contexts/ProductContext';
-import {NotificationProvider} from './contexts/NotificationContext';
+import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { ProductProvider } from './contexts/ProductContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 
 // Layout Components
 import Header from './components/Header';
@@ -20,9 +20,12 @@ import Profile from './pages/Profile';
 import Messages from './pages/Messages';
 import DirectLogin from './pages/DirectLogin';
 import AdminPromotion from './pages/AdminPromotion';
+import Pricing from './pages/Pricing';
+import Contact from './pages/Contact';
 
 // Admin Pages
 import Dashboard from './pages/admin/Dashboard';
+import Analytics from './pages/admin/Analytics';
 import UserManagement from './pages/admin/UserManagement';
 import CompanyVerification from './pages/admin/CompanyVerification';
 import TransactionTracking from './pages/admin/TransactionTracking';
@@ -36,7 +39,7 @@ const Layout = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isSpecialRoute = location.pathname === '/direct-login' || location.pathname === '/admin-promotion';
-  
+
   // Don't show header/footer/sidebar for special routes
   if (isSpecialRoute) {
     return (
@@ -62,9 +65,12 @@ const Layout = () => {
             <Route path="/sell" element={<SellEquipment />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/messages" element={<Messages />} />
-            
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/contact" element={<Contact />} />
+
             {/* Admin Routes */}
             <Route path="/admin" element={<Dashboard />} />
+            <Route path="/admin/analytics" element={<Analytics />} />
             <Route path="/admin/users" element={<UserManagement />} />
             <Route path="/admin/companies" element={<CompanyVerification />} />
             <Route path="/admin/companies/:id" element={<CompanyVerification />} />

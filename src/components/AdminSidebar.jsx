@@ -4,8 +4,13 @@ import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
 
 const { 
-  FiHome, FiUsers, FiBuilding, FiDollarSign, 
-  FiShield, FiSettings, FiBarChart3 
+  FiHome, 
+  FiUsers, 
+  FiBuilding, 
+  FiDollarSign, 
+  FiShield, 
+  FiSettings,
+  FiBarChart3 
 } = FiIcons;
 
 const AdminSidebar = () => {
@@ -13,6 +18,7 @@ const AdminSidebar = () => {
 
   const menuItems = [
     { path: '/admin', icon: FiHome, label: 'Dashboard' },
+    { path: '/admin/analytics', icon: FiBarChart3, label: 'Analytics' },
     { path: '/admin/users', icon: FiUsers, label: 'User Management' },
     { path: '/admin/companies', icon: FiBuilding, label: 'Company Verification' },
     { path: '/admin/transactions', icon: FiDollarSign, label: 'Transactions' },
