@@ -1,8 +1,8 @@
 import React from 'react';
-import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { ProductProvider } from './contexts/ProductContext';
-import { NotificationProvider } from './contexts/NotificationContext';
+import {HashRouter as Router, Routes, Route, useLocation} from 'react-router-dom';
+import {AuthProvider} from './contexts/AuthContext';
+import {ProductProvider} from './contexts/ProductContext';
+import {NotificationProvider} from './contexts/NotificationContext';
 
 // Layout Components
 import Header from './components/Header';
@@ -18,6 +18,7 @@ import ProductDetail from './pages/ProductDetail';
 import SellEquipment from './pages/SellEquipment';
 import Profile from './pages/Profile';
 import Messages from './pages/Messages';
+import DirectLogin from './pages/DirectLogin';
 
 // Admin Pages
 import Dashboard from './pages/admin/Dashboard';
@@ -33,7 +34,17 @@ import './App.css';
 const Layout = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
-
+  const isDirectLogin = location.pathname === '/direct-login';
+  
+  // Don't show header/footer/sidebar for direct login
+  if (isDirectLogin) {
+    return (
+      <Routes>
+        <Route path="/direct-login" element={<DirectLogin />} />
+      </Routes>
+    );
+  }
+  
   return (
     <div className="app-container flex flex-col min-h-screen">
       <Header />
@@ -71,7 +82,10 @@ function App() {
       <ProductProvider>
         <NotificationProvider>
           <Router>
-            <Layout />
+            <Routes>
+              <Route path="/direct-login" element={<DirectLogin />} />
+              <Route path="/*" element={<Layout />} />
+            </Routes>
           </Router>
         </NotificationProvider>
       </ProductProvider>
