@@ -19,48 +19,6 @@ const AdminPromotion = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      // First check if the table exists
-      const { data: tablesData, error: tablesError } = await supabase
-        .from('pg_tables')
-        .select('tablename')
-        .eq('schemaname', 'public')
-        .eq('tablename', 'profiles_revend');
-      
-      if (tablesError) {
-        console.error('Error checking tables:', tablesError);
-        setError('Error checking database tables');
-        setLoading(false);
-        return;
-      }
-      
-      if (!tablesData || tablesData.length === 0) {
-        console.log('Creating profiles_revend table...');
-        // Create the table if it doesn't exist
-        const { error: createError } = await supabase.rpc('exec', { 
-          query: `
-            CREATE TABLE IF NOT EXISTS profiles_revend (
-              id UUID PRIMARY KEY REFERENCES auth.users(id),
-              name TEXT,
-              email TEXT,
-              avatar TEXT,
-              company TEXT,
-              role TEXT,
-              is_company_admin BOOLEAN DEFAULT FALSE,
-              created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-              updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-            );
-          `
-        });
-        
-        if (createError) {
-          console.error('Error creating profiles_revend table:', createError);
-          setError('Failed to create profiles_revend table. Please contact support.');
-          setLoading(false);
-          return;
-        }
-      }
-
-      // Now fetch users
       const { data, error } = await supabase
         .from('profiles_revend')
         .select('id, name, email, role')
@@ -164,23 +122,28 @@ const AdminPromotion = () => {
     setSuccess('');
     
     try {
-      // Create necessary tables
-      const queries = [
-        `
-        CREATE TABLE IF NOT EXISTS profiles_revend (
+      // Create profiles table
+      const { error: profilesError } = await supabase.query(`
+        CREATE TABLE IF NOT EXISTS public.profiles_revend (
           id UUID PRIMARY KEY REFERENCES auth.users(id),
           name TEXT,
           email TEXT,
-          avatar TEXT, 
+          avatar TEXT,
           company TEXT,
           role TEXT,
           is_company_admin BOOLEAN DEFAULT FALSE,
           created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
           updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         );
-        `,
-        `
-        CREATE TABLE IF NOT EXISTS companies_revend (
+      `);
+      
+      if (profilesError && !profilesError.message.includes('already exists')) {
+        throw profilesError;
+      }
+
+      // Create companies table
+      const { error: companiesError } = await supabase.query(`
+        CREATE TABLE IF NOT EXISTS public.companies_revend (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           name TEXT NOT NULL,
           website TEXT,
@@ -192,9 +155,15 @@ const AdminPromotion = () => {
           created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
           updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         );
-        `,
-        `
-        CREATE TABLE IF NOT EXISTS products_revend (
+      `);
+
+      if (companiesError && !companiesError.message.includes('already exists')) {
+        throw companiesError;
+      }
+
+      // Create products table
+      const { error: productsError } = await supabase.query(`
+        CREATE TABLE IF NOT EXISTS public.products_revend (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           title TEXT NOT NULL,
           description TEXT,
@@ -209,9 +178,15 @@ const AdminPromotion = () => {
           created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
           updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         );
-        `,
-        `
-        CREATE TABLE IF NOT EXISTS messages_revend (
+      `);
+
+      if (productsError && !productsError.message.includes('already exists')) {
+        throw productsError;
+      }
+
+      // Create messages table
+      const { error: messagesError } = await supabase.query(`
+        CREATE TABLE IF NOT EXISTS public.messages_revend (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           sender_id UUID REFERENCES profiles_revend(id),
           receiver_id UUID REFERENCES profiles_revend(id),
@@ -219,9 +194,15 @@ const AdminPromotion = () => {
           is_read BOOLEAN DEFAULT FALSE,
           created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         );
-        `,
-        `
-        CREATE TABLE IF NOT EXISTS notifications_revend (
+      `);
+
+      if (messagesError && !messagesError.message.includes('already exists')) {
+        throw messagesError;
+      }
+
+      // Create notifications table
+      const { error: notificationsError } = await supabase.query(`
+        CREATE TABLE IF NOT EXISTS public.notifications_revend (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           user_id UUID REFERENCES profiles_revend(id),
           title TEXT NOT NULL,
@@ -230,32 +211,36 @@ const AdminPromotion = () => {
           is_read BOOLEAN DEFAULT FALSE,
           created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         );
-        `,
-        `
+      `);
+
+      if (notificationsError && !notificationsError.message.includes('already exists')) {
+        throw notificationsError;
+      }
+
+      // Setup RLS policies
+      await supabase.query(`
         ALTER TABLE profiles_revend ENABLE ROW LEVEL SECURITY;
+        
+        DROP POLICY IF EXISTS "Users can view their own profile" ON profiles_revend;
         CREATE POLICY "Users can view their own profile" ON profiles_revend 
           FOR SELECT USING (auth.uid() = id);
+        
+        DROP POLICY IF EXISTS "Users can update their own profile" ON profiles_revend;
         CREATE POLICY "Users can update their own profile" ON profiles_revend 
           FOR UPDATE USING (auth.uid() = id);
+        
+        DROP POLICY IF EXISTS "Admins can view all profiles" ON profiles_revend;
         CREATE POLICY "Admins can view all profiles" ON profiles_revend 
           FOR SELECT USING (
             auth.uid() IN (SELECT id FROM profiles_revend WHERE role = 'admin')
           );
+        
+        DROP POLICY IF EXISTS "Admins can update all profiles" ON profiles_revend;
         CREATE POLICY "Admins can update all profiles" ON profiles_revend 
           FOR UPDATE USING (
             auth.uid() IN (SELECT id FROM profiles_revend WHERE role = 'admin')
           );
-        `
-      ];
-      
-      for (const query of queries) {
-        const { error } = await supabase.rpc('exec', { query });
-        if (error) {
-          console.error('Database setup error:', error);
-          setError(`Database setup error: ${error.message}`);
-          return;
-        }
-      }
+      `);
       
       setSuccess('Database setup completed successfully!');
       fetchUsers();
