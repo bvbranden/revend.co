@@ -1,33 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
 import { useProducts } from '../contexts/ProductContext';
 import { useAuth } from '../contexts/AuthContext';
 
-const { 
-  FiShoppingCart, 
-  FiHeart, 
-  FiMapPin, 
-  FiPackage, 
-  FiClock, 
-  FiInfo,
-  FiMessageSquare,
-  FiChevronLeft,
-  FiChevronRight,
-  FiCheck,
-  FiCpu,
-  FiHardDrive,
-  FiServer,
-  FiMonitor,
-  FiBattery
-} = FiIcons;
+const { FiShoppingCart, FiHeart, FiMapPin, FiPackage, FiClock, FiInfo, FiMessageSquare, FiChevronLeft, FiChevronRight, FiCheck, FiCpu, FiHardDrive, FiServer, FiMonitor, FiBattery } = FiIcons;
 
 const ProductDetail = () => {
   const { id } = useParams();
   const { getProductById } = useProducts();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -91,12 +76,12 @@ const ProductDetail = () => {
   const productCondition = product.condition || product.condition_grade || 'Unknown';
 
   // Get the price display
-  const productPrice = product.listing_price 
-    ? (product.listing_price.type === 'total' 
-      ? `€${parseInt(product.listing_price.amount).toLocaleString()} total` 
-      : `€${parseInt(product.listing_price.amount).toLocaleString()} per unit`)
-    : `$${parseInt(product.price).toLocaleString()}`;
-  
+  const productPrice = product.listing_price ? (
+    product.listing_price.type === 'total' 
+      ? `€${parseInt(product.listing_price.amount).toLocaleString()} total`
+      : `€${parseInt(product.listing_price.amount).toLocaleString()} per unit`
+  ) : `$${parseInt(product.price).toLocaleString()}`;
+
   // Get price per unit for batch listings
   const pricePerUnit = product.listing_price && product.listing_price.type === 'total' && product.quantity
     ? `€${(parseInt(product.listing_price.amount) / parseInt(product.quantity)).toFixed(2)}`
@@ -104,12 +89,12 @@ const ProductDetail = () => {
 
   // Get the seller name with privacy consideration
   const sellerName = "Verified Seller"; // Replace any company name with "Verified Seller"
-  
+
   // Get all images
   const images = product.photos && product.photos.length > 0 
     ? product.photos 
     : product.image 
-      ? [product.image]
+      ? [product.image] 
       : ['https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=400&fit=crop'];
 
   const handleNextImage = () => {
@@ -122,8 +107,11 @@ const ProductDetail = () => {
 
   const handleInterestToggle = () => {
     if (!user) {
-      // Redirect to login if not logged in
-      window.location.href = '/login';
+      // Use React Router navigation instead of window.location
+      navigate('/login', { 
+        state: { from: { pathname: `/product/${id}` } },
+        replace: false 
+      });
       return;
     }
     setIsInterested(!isInterested);
@@ -132,10 +120,14 @@ const ProductDetail = () => {
   const handleInquirySubmit = async (e) => {
     e.preventDefault();
     if (!user) {
-      window.location.href = '/login';
+      // Use React Router navigation instead of window.location
+      navigate('/login', { 
+        state: { from: { pathname: `/product/${id}` } },
+        replace: false 
+      });
       return;
     }
-    
+
     setSubmitting(true);
     try {
       // In a real implementation, this would send the inquiry to the backend
@@ -150,6 +142,18 @@ const ProductDetail = () => {
     }
   };
 
+  const handleContactSeller = () => {
+    if (!user) {
+      // Use React Router navigation instead of window.location
+      navigate('/login', { 
+        state: { from: { pathname: `/product/${id}` } },
+        replace: false 
+      });
+      return;
+    }
+    setShowInquiryForm(true);
+  };
+
   // Helper function to render specifications
   const renderSpecs = () => {
     if (isBatch) {
@@ -161,14 +165,12 @@ const ProductDetail = () => {
               <p className="mt-1">{product.brands_included.join(', ')}</p>
             </div>
           )}
-          
           {product.cpu_types && product.cpu_types.length > 0 && (
             <div>
               <h4 className="text-sm font-medium text-gray-500">CPU Types</h4>
               <p className="mt-1">{product.cpu_types.join(', ')}</p>
             </div>
           )}
-          
           {product.ram_configuration && product.ram_configuration.length > 0 && (
             <div>
               <h4 className="text-sm font-medium text-gray-500">RAM Configuration</h4>
@@ -181,7 +183,6 @@ const ProductDetail = () => {
               </ul>
             </div>
           )}
-          
           {product.storage_configuration && product.storage_configuration.length > 0 && (
             <div>
               <h4 className="text-sm font-medium text-gray-500">Storage Configuration</h4>
@@ -194,7 +195,6 @@ const ProductDetail = () => {
               </ul>
             </div>
           )}
-          
           {product.screen_sizes && product.screen_sizes.length > 0 && (
             <div>
               <h4 className="text-sm font-medium text-gray-500">Screen Sizes</h4>
@@ -215,28 +215,24 @@ const ProductDetail = () => {
                   <span>CPU: {product.specs.cpu}</span>
                 </div>
               )}
-              
               {product.specs.ram && (
                 <div className="flex items-center">
                   <SafeIcon icon={FiServer} className="w-5 h-5 mr-2 text-gray-400" />
                   <span>RAM: {product.specs.ram}</span>
                 </div>
               )}
-              
               {product.specs.storage && (
                 <div className="flex items-center">
                   <SafeIcon icon={FiHardDrive} className="w-5 h-5 mr-2 text-gray-400" />
                   <span>Storage: {product.specs.storage}</span>
                 </div>
               )}
-              
               {product.specs.screen && (
                 <div className="flex items-center">
                   <SafeIcon icon={FiMonitor} className="w-5 h-5 mr-2 text-gray-400" />
                   <span>Screen: {product.specs.screen}</span>
                 </div>
               )}
-              
               {product.specs.battery && (
                 <div className="flex items-center">
                   <SafeIcon icon={FiBattery} className="w-5 h-5 mr-2 text-gray-400" />
@@ -272,7 +268,7 @@ const ProductDetail = () => {
 
         {/* Success Message */}
         {successMessage && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 flex items-center"
@@ -286,22 +282,21 @@ const ProductDetail = () => {
           {/* Product Images */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             <div className="relative h-96">
-              <img 
-                src={images[currentImageIndex]} 
-                alt={productTitle} 
+              <img
+                src={images[currentImageIndex]}
+                alt={productTitle}
                 className="w-full h-full object-contain"
               />
-              
               {/* Image navigation arrows */}
               {images.length > 1 && (
                 <>
-                  <button 
+                  <button
                     onClick={handlePrevImage}
                     className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-100"
                   >
                     <SafeIcon icon={FiChevronLeft} className="w-5 h-5 text-gray-700" />
                   </button>
-                  <button 
+                  <button
                     onClick={handleNextImage}
                     className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-100"
                   >
@@ -309,7 +304,6 @@ const ProductDetail = () => {
                   </button>
                 </>
               )}
-              
               {/* Image count indicator */}
               {images.length > 1 && (
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
@@ -317,21 +311,20 @@ const ProductDetail = () => {
                 </div>
               )}
             </div>
-            
             {/* Thumbnail gallery */}
             {images.length > 1 && (
               <div className="p-4 flex space-x-2 overflow-x-auto">
                 {images.map((image, index) => (
-                  <button 
+                  <button
                     key={index}
                     onClick={() => setCurrentImageIndex(index)}
                     className={`w-16 h-16 flex-shrink-0 rounded border-2 ${
                       currentImageIndex === index ? 'border-blue-500' : 'border-gray-200'
                     }`}
                   >
-                    <img 
-                      src={image} 
-                      alt={`Thumbnail ${index + 1}`} 
+                    <img
+                      src={image}
+                      alt={`Thumbnail ${index + 1}`}
                       className="w-full h-full object-cover rounded"
                     />
                   </button>
@@ -354,16 +347,16 @@ const ProductDetail = () => {
                 )}
                 <span className="text-sm text-gray-500">{productCondition}</span>
               </div>
-              
+
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
                 {productTitle}
               </h1>
-              
+
               <div className="flex items-center text-gray-600 text-sm mb-4">
                 <SafeIcon icon={FiMapPin} className="w-4 h-4 mr-1" />
                 {product.location || product.pickup_location || 'Unknown location'}
               </div>
-              
+
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <span className="text-3xl font-bold text-green-600">
@@ -385,16 +378,16 @@ const ProductDetail = () => {
                   )}
                 </div>
               </div>
-              
+
               <div className="flex space-x-3 mb-6">
-                <button 
-                  onClick={() => setShowInquiryForm(true)}
+                <button
+                  onClick={handleContactSeller}
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center"
                 >
                   <SafeIcon icon={FiMessageSquare} className="w-5 h-5 mr-2" />
                   Contact Seller
                 </button>
-                <button 
+                <button
                   onClick={handleInterestToggle}
                   className={`p-3 rounded-lg border ${
                     isInterested 
@@ -405,7 +398,7 @@ const ProductDetail = () => {
                   <SafeIcon icon={FiHeart} className="w-5 h-5" />
                 </button>
               </div>
-              
+
               <div className="border-t border-gray-200 pt-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-2">Seller Information</h2>
                 <div className="flex items-center">
@@ -422,10 +415,10 @@ const ProductDetail = () => {
                 </div>
               </div>
             </div>
-            
+
             {/* Inquiry Form */}
             {showInquiryForm && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
@@ -465,7 +458,7 @@ const ProductDetail = () => {
                 </form>
               </motion.div>
             )}
-            
+
             {/* Availability */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Availability</h2>
@@ -485,7 +478,7 @@ const ProductDetail = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Product Details */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
           <div className="lg:col-span-2 space-y-8">
@@ -496,13 +489,13 @@ const ProductDetail = () => {
                 {productDescription || 'No description provided.'}
               </p>
             </div>
-            
+
             {/* Specifications */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Specifications</h2>
               {renderSpecs()}
             </div>
-            
+
             {/* Additional Details */}
             {(product.functional_defects || product.data_wipe || product.power_supplies || product.coa_license_info) && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -514,21 +507,18 @@ const ProductDetail = () => {
                       <p className="mt-1">{product.functional_defects}</p>
                     </div>
                   )}
-                  
                   {product.data_wipe && (
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Data Wipe</h4>
                       <p className="mt-1">{product.data_wipe}</p>
                     </div>
                   )}
-                  
                   {product.power_supplies && (
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Power Supplies</h4>
                       <p className="mt-1">{product.power_supplies}</p>
                     </div>
                   )}
-                  
                   {product.coa_license_info && (
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">License Information</h4>
@@ -539,7 +529,7 @@ const ProductDetail = () => {
               </div>
             )}
           </div>
-          
+
           {/* Shipping Info */}
           <div>
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-6">
@@ -554,7 +544,6 @@ const ProductDetail = () => {
                     </div>
                   </div>
                 )}
-                
                 {(product.location || product.pickup_location) && (
                   <div className="flex items-start space-x-3">
                     <SafeIcon icon={FiMapPin} className="w-5 h-5 text-gray-500 mt-0.5" />
@@ -564,7 +553,6 @@ const ProductDetail = () => {
                     </div>
                   </div>
                 )}
-                
                 {product.shipping_details && (
                   <div className="flex items-start space-x-3">
                     <SafeIcon icon={FiInfo} className="w-5 h-5 text-gray-500 mt-0.5" />
@@ -575,10 +563,9 @@ const ProductDetail = () => {
                   </div>
                 )}
               </div>
-              
               <div className="mt-6 pt-6 border-t border-gray-200">
-                <button 
-                  onClick={() => setShowInquiryForm(true)}
+                <button
+                  onClick={handleContactSeller}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center"
                 >
                   <SafeIcon icon={FiMessageSquare} className="w-5 h-5 mr-2" />
