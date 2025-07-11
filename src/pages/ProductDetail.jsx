@@ -1,19 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
 import { useProducts } from '../contexts/ProductContext';
 import { useAuth } from '../contexts/AuthContext';
 
-const { FiShoppingCart, FiHeart, FiMapPin, FiPackage, FiClock, FiInfo, FiMessageSquare, FiChevronLeft, FiChevronRight, FiCheck, FiCpu, FiHardDrive, FiServer, FiMonitor, FiBattery } = FiIcons;
+const { 
+  FiShoppingCart, 
+  FiHeart, 
+  FiMapPin, 
+  FiPackage, 
+  FiClock, 
+  FiInfo,
+  FiMessageSquare,
+  FiChevronLeft,
+  FiChevronRight,
+  FiCheck,
+  FiCpu,
+  FiHardDrive,
+  FiServer,
+  FiMonitor,
+  FiBattery
+} = FiIcons;
 
 const ProductDetail = () => {
   const { id } = useParams();
   const { getProductById } = useProducts();
   const { user } = useAuth();
-  const navigate = useNavigate();
-  
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -80,22 +94,21 @@ const ProductDetail = () => {
   const productPrice = product.listing_price 
     ? (product.listing_price.type === 'total' 
       ? `€${parseInt(product.listing_price.amount).toLocaleString()} total` 
-      : `€${parseInt(product.listing_price.amount).toLocaleString()} per unit`) 
+      : `€${parseInt(product.listing_price.amount).toLocaleString()} per unit`)
     : `$${parseInt(product.price).toLocaleString()}`;
-
+  
   // Get price per unit for batch listings
   const pricePerUnit = product.listing_price && product.listing_price.type === 'total' && product.quantity
     ? `€${(parseInt(product.listing_price.amount) / parseInt(product.quantity)).toFixed(2)}`
     : null;
 
   // Get the seller name with privacy consideration
-  const sellerName = "Verified Seller";
-  // Replace any company name with "Verified Seller"
-
+  const sellerName = "Verified Seller"; // Replace any company name with "Verified Seller"
+  
   // Get all images
-  const images = product.photos && product.photos.length > 0
-    ? product.photos
-    : product.image
+  const images = product.photos && product.photos.length > 0 
+    ? product.photos 
+    : product.image 
       ? [product.image]
       : ['https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=400&fit=crop'];
 
@@ -109,8 +122,8 @@ const ProductDetail = () => {
 
   const handleInterestToggle = () => {
     if (!user) {
-      // Redirect to login if not logged in - use React Router's navigate
-      navigate('/login');
+      // Redirect to login if not logged in
+      window.location.href = '/login';
       return;
     }
     setIsInterested(!isInterested);
@@ -119,9 +132,10 @@ const ProductDetail = () => {
   const handleInquirySubmit = async (e) => {
     e.preventDefault();
     if (!user) {
-      navigate('/login');
+      window.location.href = '/login';
       return;
     }
+    
     setSubmitting(true);
     try {
       // In a real implementation, this would send the inquiry to the backend
@@ -258,7 +272,7 @@ const ProductDetail = () => {
 
         {/* Success Message */}
         {successMessage && (
-          <motion.div
+          <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 flex items-center"
@@ -272,22 +286,22 @@ const ProductDetail = () => {
           {/* Product Images */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             <div className="relative h-96">
-              <img
-                src={images[currentImageIndex]}
-                alt={productTitle}
+              <img 
+                src={images[currentImageIndex]} 
+                alt={productTitle} 
                 className="w-full h-full object-contain"
               />
               
               {/* Image navigation arrows */}
               {images.length > 1 && (
                 <>
-                  <button
+                  <button 
                     onClick={handlePrevImage}
                     className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-100"
                   >
                     <SafeIcon icon={FiChevronLeft} className="w-5 h-5 text-gray-700" />
                   </button>
-                  <button
+                  <button 
                     onClick={handleNextImage}
                     className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-100"
                   >
@@ -308,16 +322,16 @@ const ProductDetail = () => {
             {images.length > 1 && (
               <div className="p-4 flex space-x-2 overflow-x-auto">
                 {images.map((image, index) => (
-                  <button
+                  <button 
                     key={index}
                     onClick={() => setCurrentImageIndex(index)}
                     className={`w-16 h-16 flex-shrink-0 rounded border-2 ${
                       currentImageIndex === index ? 'border-blue-500' : 'border-gray-200'
                     }`}
                   >
-                    <img
-                      src={image}
-                      alt={`Thumbnail ${index + 1}`}
+                    <img 
+                      src={image} 
+                      alt={`Thumbnail ${index + 1}`} 
                       className="w-full h-full object-cover rounded"
                     />
                   </button>
@@ -333,13 +347,11 @@ const ProductDetail = () => {
                 <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
                   {productCategory}
                 </span>
-                
                 {isBatch && (
                   <span className="text-sm font-medium text-purple-600 bg-purple-50 px-2 py-1 rounded">
                     Batch
                   </span>
                 )}
-                
                 <span className="text-sm text-gray-500">{productCondition}</span>
               </div>
               
@@ -363,7 +375,6 @@ const ProductDetail = () => {
                     </span>
                   )}
                 </div>
-                
                 <div className="flex items-center space-x-2">
                   <SafeIcon icon={FiPackage} className="w-5 h-5 text-gray-500" />
                   <span>Qty: {product.quantity || 1}</span>
@@ -376,19 +387,18 @@ const ProductDetail = () => {
               </div>
               
               <div className="flex space-x-3 mb-6">
-                <button
+                <button 
                   onClick={() => setShowInquiryForm(true)}
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center"
                 >
                   <SafeIcon icon={FiMessageSquare} className="w-5 h-5 mr-2" />
                   Contact Seller
                 </button>
-                
-                <button
+                <button 
                   onClick={handleInterestToggle}
                   className={`p-3 rounded-lg border ${
-                    isInterested
-                      ? 'bg-red-50 border-red-200 text-red-600'
+                    isInterested 
+                      ? 'bg-red-50 border-red-200 text-red-600' 
                       : 'bg-gray-50 border-gray-200 text-gray-600'
                   }`}
                 >
@@ -412,10 +422,10 @@ const ProductDetail = () => {
                 </div>
               </div>
             </div>
-
+            
             {/* Inquiry Form */}
             {showInquiryForm && (
-              <motion.div
+              <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
@@ -455,7 +465,7 @@ const ProductDetail = () => {
                 </form>
               </motion.div>
             )}
-
+            
             {/* Availability */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Availability</h2>
@@ -475,7 +485,7 @@ const ProductDetail = () => {
             </div>
           </div>
         </div>
-
+        
         {/* Product Details */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
           <div className="lg:col-span-2 space-y-8">
@@ -486,13 +496,13 @@ const ProductDetail = () => {
                 {productDescription || 'No description provided.'}
               </p>
             </div>
-
+            
             {/* Specifications */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Specifications</h2>
               {renderSpecs()}
             </div>
-
+            
             {/* Additional Details */}
             {(product.functional_defects || product.data_wipe || product.power_supplies || product.coa_license_info) && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -529,7 +539,7 @@ const ProductDetail = () => {
               </div>
             )}
           </div>
-
+          
           {/* Shipping Info */}
           <div>
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-6">
@@ -565,8 +575,9 @@ const ProductDetail = () => {
                   </div>
                 )}
               </div>
+              
               <div className="mt-6 pt-6 border-t border-gray-200">
-                <button
+                <button 
                   onClick={() => setShowInquiryForm(true)}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center"
                 >
