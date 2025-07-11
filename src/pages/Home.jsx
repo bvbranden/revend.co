@@ -3,261 +3,184 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
-import { useProducts } from '../contexts/ProductContext';
 
-const { FiArrowRight, FiShield, FiTrendingUp, FiUsers, FiGlobe, FiDollarSign, FiChevronLeft, FiChevronRight } = FiIcons;
+const { 
+  FiArrowRight, FiShield, FiTrendingUp, FiUsers, FiGlobe, FiDollarSign,
+  FiChevronLeft, FiChevronRight, FiUser, FiUpload, FiClock, FiHandshake,
+  FiAperture, FiDatabase, FiCheckCircle, FiZap, FiDollar, FiGrid,
+  FiLock, FiBarChart2, FiMessageCircle
+} = FiIcons;
 
-// Hero variants
-const heroVariants = {
-  default: {
-    headline: "The B2B Marketplace for IT Equipment",
-    subheadline: "Connect with verified ITAD companies and brokers to buy and sell second-hand and new computer equipment efficiently and securely.",
-    cta: {
-      text: "Browse Marketplace",
-      link: "/marketplace"
-    },
-    secondaryCta: {
-      text: "Start Selling",
-      link: "/sell"
-    },
-    image: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=400&fit=crop"
-  },
-  revenue: {
-    headline: "Turn Your Surplus IT Equipment Into Revenue",
-    subheadline: "Join thousands of companies trading IT equipment on the leading B2B marketplace for verified ITAD companies and brokers.",
-    cta: {
-      text: "Start Selling",
-      link: "/sell"
-    },
-    secondaryCta: {
-      text: "Learn More",
-      link: "/pricing"
-    },
-    image: "https://images.unsplash.com/photo-1579389083078-4e7018379f7e?w=600&h=400&fit=crop"
-  },
-  trust: {
-    headline: "Trade IT Equipment With Confidence",
-    subheadline: "Your trusted marketplace for verified ITAD companies and brokers, ensuring secure and reliable IT equipment trading.",
-    cta: {
-      text: "Join Now",
-      link: "/register"
-    },
-    secondaryCta: {
-      text: "View Features",
-      link: "/pricing"
-    },
-    image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=600&h=400&fit=crop"
-  },
-  value: {
-    headline: "Get Maximum Value for IT Equipment",
-    subheadline: "Access the largest network of verified buyers and sellers in the IT equipment trading industry.",
-    cta: {
-      text: "Explore Marketplace",
-      link: "/marketplace"
-    },
-    secondaryCta: {
-      text: "Start Trading",
-      link: "/register"
-    },
-    image: "https://images.unsplash.com/photo-1573164713988-8665fc963095?w=600&h=400&fit=crop"
-  }
-};
+const Home = () => {
+  const [currentHeroSlide, setCurrentHeroSlide] = useState(0);
+  const [autoplay, setAutoplay] = useState(true);
+  const autoplayRef = useRef(null);
 
-function HomePage() {
-  const { products } = useProducts();
-  const featuredProducts = products.slice(0, 3);
-  const [currentHeroVariant, setCurrentHeroVariant] = useState('default');
-  const intervalRef = useRef(null);
-  
-  const resetInterval = () => {
-    // Clear the existing interval
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
+  const heroSlides = [
+    {
+      title: "Trade IT Equipment with Confidence",
+      description: "The leading B2B marketplace for ITAD companies and brokers to trade second-hand and new IT equipment efficiently and securely.",
+      cta: "Get Started",
+      ctaLink: "/register",
+      image: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      title: "Auction Your IT Inventory",
+      description: "Set your terms, create auctions, and sell to the highest bidder. Our transparent platform ensures fair pricing for hardware.",
+      cta: "Sell Equipment",
+      ctaLink: "/sell",
+      image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      title: "Verified Business Network",
+      description: "Join our community of vetted ITAD companies, refurbishers, and IT brokers. Build trust and grow your business.",
+      cta: "Join Network",
+      ctaLink: "/register",
+      image: "https://images.unsplash.com/photo-1573164713988-8665fc963095?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      title: "Secure Transactions & Escrow",
+      description: "Trade with confidence using our secure payment system and escrow services. Every transaction is protected and verified.",
+      cta: "Learn More",
+      ctaLink: "/pricing",
+      image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=800&q=80"
     }
-    
-    // Set a new interval
-    intervalRef.current = setInterval(() => {
-      const variantKeys = Object.keys(heroVariants);
-      const currentIndex = variantKeys.indexOf(currentHeroVariant);
-      const nextIndex = (currentIndex + 1) % variantKeys.length;
-      setCurrentHeroVariant(variantKeys[nextIndex]);
-    }, 15000);
+  ];
+
+  const nextSlide = () => {
+    setCurrentHeroSlide((prev) => (prev + 1) % heroSlides.length);
   };
-  
+
+  const prevSlide = () => {
+    setCurrentHeroSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
+  };
+
   useEffect(() => {
-    // Set up the initial interval
-    resetInterval();
-    
-    // Clean up on unmount
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [currentHeroVariant]);
-
-  const stats = [
-    { label: 'Active Listings', value: '2,500+', icon: FiTrendingUp },
-    { label: 'Verified Brokers', value: '150+', icon: FiUsers },
-    { label: 'Countries', value: '25+', icon: FiGlobe },
-    { label: 'Monthly Volume', value: '$2M+', icon: FiDollarSign }
-  ];
-
-  const features = [
-    {
-      icon: FiShield,
-      title: 'Verified Sellers',
-      description: 'All sellers are verified ITAD companies and certified brokers'
-    },
-    {
-      icon: FiTrendingUp,
-      title: 'Real-time Pricing',
-      description: 'Get competitive market prices updated in real-time'
-    },
-    {
-      icon: FiUsers,
-      title: 'B2B Focus',
-      description: 'Exclusively for business-to-business transactions'
+    if (autoplay) {
+      autoplayRef.current = setTimeout(() => {
+        nextSlide();
+      }, 6000);
     }
+    return () => {
+      if (autoplayRef.current) clearTimeout(autoplayRef.current);
+    };
+  }, [currentHeroSlide, autoplay]);
+
+  const handleIndicatorClick = (index) => {
+    setCurrentHeroSlide(index);
+    if (autoplayRef.current) clearTimeout(autoplayRef.current);
+    setAutoplay(false);
+  };
+
+  const handleSliderHover = (isHovering) => {
+    setAutoplay(!isHovering);
+  };
+
+  const fadeInUp = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.6 }
+  };
+
+  // Stats Section
+  const stats = [
+    { value: "10K+", label: "IT Assets Listed", icon: FiDollarSign },
+    { value: "500+", label: "Verified Companies", icon: FiUsers },
+    { value: "€2.5M", label: "Monthly Trading Volume", icon: FiTrendingUp },
+    { value: "12", label: "Countries Served", icon: FiGlobe }
   ];
-
-  const goToPreviousVariant = () => {
-    const variantKeys = Object.keys(heroVariants);
-    const currentIndex = variantKeys.indexOf(currentHeroVariant);
-    const prevIndex = currentIndex === 0 ? variantKeys.length - 1 : currentIndex - 1;
-    setCurrentHeroVariant(variantKeys[prevIndex]);
-    resetInterval(); // Reset the interval when manually changing slides
-  };
-
-  const goToNextVariant = () => {
-    const variantKeys = Object.keys(heroVariants);
-    const currentIndex = variantKeys.indexOf(currentHeroVariant);
-    const nextIndex = (currentIndex + 1) % variantKeys.length;
-    setCurrentHeroVariant(variantKeys[nextIndex]);
-    resetInterval(); // Reset the interval when manually changing slides
-  };
-
-  const handleDotClick = (variant) => {
-    setCurrentHeroVariant(variant);
-    resetInterval(); // Reset the interval when manually changing slides
-  };
 
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20 lg:py-24 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <section 
+        className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white relative overflow-hidden"
+        onMouseEnter={() => handleSliderHover(true)}
+        onMouseLeave={() => handleSliderHover(false)}
+      >
+        {/* Background Shapes */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+          <div className="absolute top-0 right-0 bg-white opacity-5 rounded-full w-96 h-96 -mr-20 -mt-20"></div>
+          <div className="absolute bottom-0 left-0 bg-white opacity-5 rounded-full w-96 h-96 -ml-20 -mb-20"></div>
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 h-[600px] flex items-center relative">
+          {/* Hero Slider */}
+          <div className="w-full">
             <AnimatePresence mode="wait">
               <motion.div
-                key={`text-${currentHeroVariant}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
+                key={currentHeroSlide}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.5 }}
-                className="text-center lg:text-left"
+                className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
               >
-                <motion.h1 
-                  className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                >
-                  {heroVariants[currentHeroVariant].headline}
-                </motion.h1>
-                <motion.p 
-                  className="text-xl text-blue-100 mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                >
-                  {heroVariants[currentHeroVariant].subheadline}
-                </motion.p>
-                <motion.div 
-                  className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.3 }}
-                >
-                  <Link
-                    to={heroVariants[currentHeroVariant].cta.link}
-                    className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-blue-50 transition-colors inline-flex items-center justify-center text-lg"
-                  >
-                    {heroVariants[currentHeroVariant].cta.text}
-                    <SafeIcon icon={FiArrowRight} className="ml-2 w-5 h-5" />
-                  </Link>
-                  <Link
-                    to={heroVariants[currentHeroVariant].secondaryCta.link}
-                    className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors inline-flex items-center justify-center text-lg"
-                  >
-                    {heroVariants[currentHeroVariant].secondaryCta.text}
-                  </Link>
-                </motion.div>
+                {/* Text Content */}
+                <div className="order-2 lg:order-1">
+                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+                    {heroSlides[currentHeroSlide].title}
+                  </h1>
+                  <p className="text-xl md:text-2xl text-blue-100 mb-8">
+                    {heroSlides[currentHeroSlide].description}
+                  </p>
+                  <div className="flex flex-wrap gap-4">
+                    <Link
+                      to={heroSlides[currentHeroSlide].ctaLink}
+                      className="bg-white text-blue-700 hover:bg-blue-50 px-6 py-3 rounded-lg font-medium text-lg transition-colors flex items-center"
+                    >
+                      {heroSlides[currentHeroSlide].cta}
+                      <SafeIcon icon={FiArrowRight} className="ml-2 w-5 h-5" />
+                    </Link>
+                    <Link
+                      to="/marketplace"
+                      className="border-2 border-white text-white hover:bg-white hover:text-blue-700 px-6 py-3 rounded-lg font-medium text-lg transition-colors"
+                    >
+                      Browse Marketplace
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Image */}
+                <div className="order-1 lg:order-2">
+                  <div className="relative">
+                    <img
+                      src={heroSlides[currentHeroSlide].image}
+                      alt={heroSlides[currentHeroSlide].title}
+                      className="w-full h-80 lg:h-96 object-cover rounded-2xl shadow-2xl"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl"></div>
+                  </div>
+                </div>
               </motion.div>
             </AnimatePresence>
             
-            <div className="relative hidden lg:block">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={`image-${currentHeroVariant}`}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.5 }}
-                  className="relative"
-                >
-                  <img
-                    src={heroVariants[currentHeroVariant].image}
-                    alt="IT Equipment"
-                    className="rounded-lg shadow-2xl w-full h-auto object-cover"
-                  />
-                  <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-lg shadow-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-gray-700 font-medium">Live Marketplace</span>
-                    </div>
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-            </div>
-          </div>
-          
-          {/* Hero navigation controls - moved below the content */}
-          <div className="flex justify-between items-center mt-12 px-4 mx-auto max-w-7xl">
-            <button 
-              onClick={goToPreviousVariant}
-              className="p-3 rounded-full bg-blue-800 bg-opacity-50 text-white hover:bg-opacity-75 transition-colors z-20"
-              aria-label="Previous hero"
-            >
-              <SafeIcon icon={FiChevronLeft} className="w-6 h-6" />
-            </button>
-            
-            {/* Variant indicator dots - moved to center */}
-            <div className="flex space-x-4">
-              {Object.keys(heroVariants).map((variant) => (
+            {/* Slider Controls */}
+            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3">
+              {heroSlides.map((_, index) => (
                 <button
-                  key={variant}
-                  onClick={() => handleDotClick(variant)}
-                  className={`w-4 h-4 rounded-full transition-colors cursor-pointer ${
-                    currentHeroVariant === variant
-                      ? 'bg-white scale-110 transform'
-                      : 'bg-blue-200 bg-opacity-50 hover:bg-blue-100'
+                  key={index}
+                  onClick={() => handleIndicatorClick(index)}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    currentHeroSlide === index ? 'bg-white scale-125' : 'bg-white/30 hover:bg-white/50'
                   }`}
-                  aria-label={`Switch to ${variant} hero`}
-                  style={{
-                    transition: 'all 0.3s ease',
-                    padding: '0',
-                    border: 'none',
-                    outline: 'none'
-                  }}
+                  aria-label={`Go to slide ${index + 1}`}
                 />
               ))}
             </div>
             
-            <button 
-              onClick={goToNextVariant}
-              className="p-3 rounded-full bg-blue-800 bg-opacity-50 text-white hover:bg-opacity-75 transition-colors z-20"
-              aria-label="Next hero"
+            {/* Navigation Arrows */}
+            <button
+              onClick={prevSlide}
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white rounded-full p-3 transition-all duration-300 hover:scale-110"
+              aria-label="Previous slide"
+            >
+              <SafeIcon icon={FiChevronLeft} className="w-6 h-6" />
+            </button>
+            <button
+              onClick={nextSlide}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white rounded-full p-3 transition-all duration-300 hover:scale-110"
+              aria-label="Next slide"
             >
               <SafeIcon icon={FiChevronRight} className="w-6 h-6" />
             </button>
@@ -268,21 +191,20 @@ function HomePage() {
       {/* Stats Section */}
       <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <motion.div
                 key={stat.label}
                 initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="p-6"
+                viewport={{ once: true }}
+                className="text-center"
               >
-                <div className="flex items-center justify-center">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                    <SafeIcon icon={stat.icon} className="w-6 h-6 text-blue-600" />
-                  </div>
+                <div className="bg-blue-50 w-16 h-16 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <SafeIcon icon={stat.icon} className="w-8 h-8 text-blue-600" />
                 </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</h3>
+                <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
                 <p className="text-gray-600">{stat.label}</p>
               </motion.div>
             ))}
@@ -291,29 +213,104 @@ function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Choose revend.co</h2>
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Why Choose revend.co
+            </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              The most trusted platform for IT equipment trading in the B2B market
+              Purpose-built for professional IT asset trading
             </p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                icon: FiAperture,
+                title: "Transparent Auctions",
+                description: "Open, real-time bidding between verified companies — no hidden fees or price manipulation.",
+                color: "blue"
+              },
+              {
+                icon: FiDatabase,
+                title: "Tailored for IT Hardware",
+                description: "Built for desktops, laptops, servers, phones, and components — not general B2B trade.",
+                color: "indigo"
+              },
+              {
+                icon: FiCheckCircle,
+                title: "Verified Buyers & Sellers",
+                description: "Access a trusted network of vetted professionals — no noise, no spam, no amateurs.",
+                color: "green"
+              },
+              {
+                icon: FiZap,
+                title: "Fast Turnaround",
+                description: "List your stock in minutes and close deals within days — or even hours.",
+                color: "yellow"
+              },
+              {
+                icon: FiDollar,
+                title: "No Sales Commission",
+                description: "ReVend takes no cut from your successful sales. Your profit stays yours.",
+                color: "emerald"
+              },
+              {
+                icon: FiGrid,
+                title: "Batch Upload & CSV Support",
+                description: "Upload full inventories via spreadsheet — designed for recurring bulk workflows.",
+                color: "purple"
+              },
+              {
+                icon: FiLock,
+                title: "Private or Public Auctions",
+                description: "Choose who sees your auctions: keep it private or go public.",
+                color: "rose"
+              },
+              {
+                icon: FiBarChart2,
+                title: "Smart Deal History",
+                description: "Track performance, bidding behavior, and past prices to improve future listings.",
+                color: "cyan"
+              },
+              {
+                icon: FiMessageCircle,
+                title: "Built-in Communication",
+                description: "Message buyers and sellers directly — no need for third-party email or apps.",
+                color: "orange"
+              }
+            ].map((feature, index) => (
               <motion.div
-                key={feature.title}
+                key={index}
                 initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 + 0.2 }}
-                className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center"
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                viewport={{ once: true }}
+                className="relative group"
               >
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-6">
-                  <SafeIcon icon={feature.icon} className="w-8 h-8 text-blue-600" />
+                <div className="h-full bg-white rounded-xl p-8 shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                  <div className="mb-6 relative">
+                    {/* Icon container with dynamic color */}
+                    <div className={`w-14 h-14 bg-${feature.color}-50 rounded-xl flex items-center justify-center transform transition-transform duration-300 group-hover:scale-110`}>
+                      <SafeIcon
+                        icon={feature.icon}
+                        className={`w-7 h-7 text-${feature.color}-600`}
+                      />
+                    </div>
+                    
+                    {/* Decorative element */}
+                    <div className={`absolute w-14 h-14 bg-${feature.color}-100 rounded-xl -z-10 top-2 left-2 opacity-50`}></div>
+                  </div>
+
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                    {feature.title}
+                  </h3>
+                  
+                  <p className="text-gray-600 leading-relaxed">
+                    {feature.description}
+                  </p>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -321,31 +318,89 @@ function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-blue-700 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to get started?</h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
-            Join thousands of businesses already trading IT equipment on revend.co
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/register"
-              className="bg-white text-blue-700 px-8 py-4 rounded-lg font-semibold hover:bg-blue-50 transition-colors inline-flex items-center justify-center text-lg"
-            >
-              Create Account
-              <SafeIcon icon={FiArrowRight} className="ml-2 w-5 h-5" />
-            </Link>
-            <Link
-              to="/marketplace"
-              className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-blue-700 transition-colors inline-flex items-center justify-center text-lg"
-            >
-              Browse Marketplace
-            </Link>
+      <section className="py-16 bg-blue-600 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
+            <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
+              Join thousands of ITAD companies and brokers who trust revend.co for their equipment trading needs.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link
+                to="/register"
+                className="bg-white text-blue-700 hover:bg-blue-50 px-6 py-3 rounded-lg font-medium text-lg transition-colors"
+              >
+                Create Account
+              </Link>
+              <Link
+                to="/marketplace"
+                className="border-2 border-white text-white hover:bg-white hover:text-blue-700 px-6 py-3 rounded-lg font-medium text-lg transition-colors"
+              >
+                Browse Marketplace
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">What Our Users Say</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Discover how revend.co has transformed IT asset trading for businesses worldwide
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                quote: "revend.co has revolutionized how we source IT equipment. The verification process gives us confidence in every transaction.",
+                author: "Sarah Johnson",
+                company: "TechRefurb Solutions",
+                image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face"
+              },
+              {
+                quote: "As an ITAD company, we've increased our sales volume by 40% since joining the platform. The auction system ensures we get fair market value.",
+                author: "Michael Chen",
+                company: "GreenIT Recycling",
+                image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&h=150&fit=crop&crop=face"
+              },
+              {
+                quote: "The analytics tools have been invaluable for our pricing strategy. We can now make data-driven decisions about our inventory.",
+                author: "Emma Rodriguez",
+                company: "CircuitBridge Systems",
+                image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=150&h=150&fit=crop&crop=face"
+              }
+            ].map((testimonial, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.2 }}
+                viewport={{ once: true }}
+                className="bg-gray-50 p-8 rounded-lg"
+              >
+                <div className="flex items-center mb-4">
+                  <img
+                    src={testimonial.image}
+                    alt={testimonial.author}
+                    className="w-12 h-12 rounded-full mr-4"
+                  />
+                  <div>
+                    <p className="font-semibold text-gray-900">{testimonial.author}</p>
+                    <p className="text-gray-600 text-sm">{testimonial.company}</p>
+                  </div>
+                </div>
+                <p className="text-gray-700 italic">"{testimonial.quote}"</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
     </div>
   );
-}
+};
 
-export default HomePage;
+export default Home;
