@@ -1,8 +1,8 @@
 import React from 'react';
-import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { ProductProvider } from './contexts/ProductContext';
-import { NotificationProvider } from './contexts/NotificationContext';
+import {HashRouter as Router, Routes, Route, useLocation} from 'react-router-dom';
+import {AuthProvider} from './contexts/AuthContext';
+import {ProductProvider} from './contexts/ProductContext';
+import {NotificationProvider} from './contexts/NotificationContext';
 
 // Layout Components
 import Header from './components/Header';
@@ -16,6 +16,7 @@ import Register from './pages/Register';
 import Marketplace from './pages/Marketplace';
 import ProductDetail from './pages/ProductDetail';
 import SellEquipment from './pages/SellEquipment';
+import BatchListingForm from './pages/BatchListingForm';
 import Profile from './pages/Profile';
 import Messages from './pages/Messages';
 import DirectLogin from './pages/DirectLogin';
@@ -63,6 +64,7 @@ const Layout = () => {
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/sell" element={<SellEquipment />} />
+            <Route path="/batch-listing" element={<BatchListingForm />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/pricing" element={<Pricing />} />
