@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
@@ -8,7 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 const { FiUser, FiMail, FiLock, FiBriefcase, FiAlertCircle, FiCheck } = FiIcons;
 
 const Register = () => {
-  const { register } = useAuth();
+  const { register, user } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
@@ -21,6 +21,13 @@ const Register = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // If user is already logged in, redirect to marketplace
+  useEffect(() => {
+    if (user) {
+      navigate('/marketplace');
+    }
+  }, [user, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,30 +42,32 @@ const Register = () => {
       setError('Passwords do not match');
       return false;
     }
+    
     if (formData.password.length < 6) {
       setError('Password must be at least 6 characters');
       return false;
     }
+    
     return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    
     if (!validateForm()) {
       return;
     }
-
+    
     setIsLoading(true);
+    
     try {
       const { confirmPassword, ...registerData } = formData;
       await register(registerData);
       
-      // No need to wait for email confirmation
       setSuccess('Account created successfully!');
-      setTimeout(() => {
-        navigate('/marketplace');
-      }, 1500);
+      
+      // The redirect will happen automatically due to the useEffect
     } catch (err) {
       setError(err.message || 'Failed to create account. Please check your credentials.');
       console.error(err);
@@ -89,21 +98,21 @@ const Register = () => {
             </Link>
           </p>
         </div>
-
+        
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center">
             <SafeIcon icon={FiAlertCircle} className="w-5 h-5 mr-2 text-red-500" />
             <span>{error}</span>
           </div>
         )}
-
+        
         {success && (
           <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center">
             <SafeIcon icon={FiCheck} className="w-5 h-5 mr-2 text-green-500" />
             <span>{success}</span>
           </div>
         )}
-
+        
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
@@ -126,7 +135,7 @@ const Register = () => {
                 />
               </div>
             </div>
-
+            
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email address
@@ -148,7 +157,7 @@ const Register = () => {
                 />
               </div>
             </div>
-
+            
             <div>
               <label htmlFor="company" className="block text-sm font-medium text-gray-700">
                 Company Name
@@ -169,7 +178,7 @@ const Register = () => {
                 />
               </div>
             </div>
-
+            
             <div>
               <label htmlFor="role" className="block text-sm font-medium text-gray-700">
                 Role
@@ -186,7 +195,7 @@ const Register = () => {
                 <option value="reseller">Reseller</option>
               </select>
             </div>
-
+            
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
@@ -207,7 +216,7 @@ const Register = () => {
                 />
               </div>
             </div>
-
+            
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
                 Confirm Password
@@ -229,7 +238,7 @@ const Register = () => {
               </div>
             </div>
           </div>
-
+          
           <div className="flex items-center">
             <input
               id="terms"
@@ -249,7 +258,7 @@ const Register = () => {
               </a>
             </label>
           </div>
-
+          
           <div>
             <button
               type="submit"

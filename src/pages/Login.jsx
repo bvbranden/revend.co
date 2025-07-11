@@ -1,29 +1,42 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
 import { useAuth } from '../contexts/AuthContext';
 
-const { FiMail, FiLock, FiAlertCircle } = FiIcons;
+const { FiMail, FiLock, FiAlertCircle, FiCheckCircle } = FiIcons;
 
 const Login = () => {
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
-  
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Get redirect path from location state or default to marketplace
+  const from = location.state?.from?.pathname || '/marketplace';
+  
+  // If user is already logged in, redirect
+  useEffect(() => {
+    if (user) {
+      navigate(from, { replace: true });
+    }
+  }, [user, navigate, from]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setIsLoading(true);
     
     try {
       await login(email, password);
-      navigate('/marketplace');
+      setSuccess('Login successful! Redirecting...');
+      // The useEffect will handle the redirect
     } catch (err) {
       setError(err.message || 'Failed to sign in. Please check your credentials.');
       console.error(err);
@@ -62,6 +75,13 @@ const Login = () => {
           </div>
         )}
         
+        {success && (
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center">
+            <SafeIcon icon={FiCheckCircle} className="w-5 h-5 mr-2 text-green-500" />
+            <span>{success}</span>
+          </div>
+        )}
+        
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
@@ -85,6 +105,7 @@ const Login = () => {
                 />
               </div>
             </div>
+            
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
@@ -120,6 +141,7 @@ const Login = () => {
                 Remember me
               </label>
             </div>
+            
             <div className="text-sm">
               <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
                 Forgot your password?
@@ -154,6 +176,7 @@ const Login = () => {
               <span className="px-2 bg-white text-gray-500">Or continue with</span>
             </div>
           </div>
+          
           <div className="mt-6 grid grid-cols-2 gap-3">
             <button
               type="button"

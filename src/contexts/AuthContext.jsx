@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
           setIsLoading(false);
           return;
         }
-
+        
         setSession(session);
         
         if (session) {
@@ -42,6 +42,7 @@ export const AuthProvider = ({ children }) => {
 
           if (profileError) {
             console.error('Error fetching profile:', profileError);
+            
             // Create profile if it doesn't exist
             if (profileError.code === 'PGRST116') {
               const { error: insertError } = await supabase
@@ -65,7 +66,7 @@ export const AuthProvider = ({ children }) => {
                   .select(`*`)
                   .eq('id', session.user.id)
                   .single();
-                
+
                 setUser({
                   id: session.user.id,
                   email: session.user.email,
@@ -81,6 +82,8 @@ export const AuthProvider = ({ children }) => {
               ...profile
             });
           }
+        } else {
+          setUser(null);
         }
       } catch (error) {
         console.error('Session check error:', error);
@@ -95,6 +98,7 @@ export const AuthProvider = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
         console.log('Auth state changed:', event, newSession?.user?.email);
+        
         setSession(newSession);
         
         if (newSession) {
@@ -108,6 +112,7 @@ export const AuthProvider = ({ children }) => {
 
             if (profileError) {
               console.error('Error fetching profile:', profileError);
+              
               // Create profile if it doesn't exist
               if (profileError.code === 'PGRST116') {
                 const { error: insertError } = await supabase
@@ -129,7 +134,7 @@ export const AuthProvider = ({ children }) => {
                     .select(`*`)
                     .eq('id', newSession.user.id)
                     .single();
-                  
+
                   setUser({
                     id: newSession.user.id,
                     email: newSession.user.email,
@@ -169,7 +174,7 @@ export const AuthProvider = ({ children }) => {
     if (error) {
       throw error;
     }
-
+    
     return data;
   };
 
@@ -214,7 +219,7 @@ export const AuthProvider = ({ children }) => {
           console.error('Profile creation error:', profileError);
           throw profileError;
         }
-        
+
         // Auto sign-in after registration to bypass email confirmation
         await login(email, password);
       }
@@ -227,11 +232,18 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('Error logging out:', error);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error logging out:', error);
+      }
+      setUser(null);
+      setSession(null);
+      return { success: true };
+    } catch (err) {
+      console.error('Logout error:', err);
+      return { success: false, error: err.message };
     }
-    setUser(null);
   };
 
   // Add a method to handle email confirmation
@@ -241,11 +253,11 @@ export const AuthProvider = ({ children }) => {
       type: 'email',
       email
     });
-    
+
     if (error) {
       throw error;
     }
-    
+
     // After confirmation, we should already have a session from onAuthStateChange
     return true;
   };

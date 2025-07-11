@@ -1,13 +1,14 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
 import { useAuth } from '../contexts/AuthContext';
 
-const { FiMenu, FiSearch, FiUser, FiMessageCircle, FiBell, FiPackage } = FiIcons;
+const { FiMenu, FiSearch, FiUser, FiMessageCircle, FiBell, FiPackage, FiLogOut } = FiIcons;
 
 const Header = () => {
-  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const { user, logout, isLoading } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = React.useState(false);
 
@@ -17,6 +18,17 @@ const Header = () => {
 
   const toggleProfileMenu = () => {
     setIsProfileMenuOpen(!isProfileMenuOpen);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setIsProfileMenuOpen(false);
+      setIsMenuOpen(false);
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
@@ -81,7 +93,7 @@ const Header = () => {
           {/* Right Side Actions */}
           <div className="flex items-center">
             {/* User is logged in */}
-            {user ? (
+            {!isLoading && user ? (
               <>
                 <Link
                   to="/messages"
@@ -136,10 +148,7 @@ const Header = () => {
                         Sell Equipment
                       </Link>
                       <button
-                        onClick={() => {
-                          logout();
-                          setIsProfileMenuOpen(false);
-                        }}
+                        onClick={handleLogout}
                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
                         Sign out
@@ -148,7 +157,7 @@ const Header = () => {
                   )}
                 </div>
               </>
-            ) : (
+            ) : !isLoading ? (
               /* User is not logged in */
               <div className="flex items-center space-x-4">
                 <Link to="/login" className="text-gray-500 hover:text-gray-700 font-medium">
@@ -160,6 +169,11 @@ const Header = () => {
                 >
                   Sign up
                 </Link>
+              </div>
+            ) : (
+              // Loading state
+              <div className="flex items-center space-x-4">
+                <div className="w-5 h-5 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
               </div>
             )}
 
@@ -226,7 +240,7 @@ const Header = () => {
           </div>
 
           {/* Mobile user menu */}
-          {!user ? (
+          {!isLoading && !user ? (
             <div className="pt-4 pb-3 border-t border-gray-200">
               <div className="flex items-center px-5">
                 <div className="flex-shrink-0">
@@ -257,7 +271,7 @@ const Header = () => {
                 </Link>
               </div>
             </div>
-          ) : (
+          ) : !isLoading ? (
             <div className="pt-4 pb-3 border-t border-gray-200">
               <div className="flex items-center px-5">
                 <div className="flex-shrink-0">
@@ -288,17 +302,17 @@ const Header = () => {
                   Messages
                 </Link>
                 <button
-                  onClick={() => {
-                    logout();
-                    setIsMenuOpen(false);
-                  }}
+                  onClick={handleLogout}
                   className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                 >
-                  Sign out
+                  <div className="flex items-center">
+                    <SafeIcon icon={FiLogOut} className="mr-2 h-5 w-5" />
+                    Sign out
+                  </div>
                 </button>
               </div>
             </div>
-          )}
+          ) : null}
         </div>
       )}
     </header>
