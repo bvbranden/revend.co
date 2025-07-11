@@ -294,11 +294,11 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Why Choose revend.co Section */}
+      {/* Why Choose Revend.co Section */}
       <section className="why-choose-revend-section py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Choose revend.co</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Why choose Revend.co</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               The most trusted platform for IT equipment trading in the B2B market
             </p>
@@ -331,22 +331,6 @@ function HomePage() {
               </motion.div>
             ))}
           </div>
-
-          {/* Call to Action */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.2 }}
-            className="text-center mt-12"
-          >
-            <Link
-              to="/register"
-              className="inline-flex items-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm transition-colors duration-200"
-            >
-              Create Free Account
-              <SafeIcon icon={FiArrowRight} className="ml-2 w-5 h-5" />
-            </Link>
-          </motion.div>
         </div>
       </section>
 
