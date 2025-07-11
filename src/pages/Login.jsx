@@ -16,10 +16,10 @@ const Login = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Get redirect path from location state or default to marketplace
   const from = location.state?.from?.pathname || '/marketplace';
-  
+
   // If user is already logged in, redirect
   useEffect(() => {
     if (user) {
@@ -32,7 +32,7 @@ const Login = () => {
     setError('');
     setSuccess('');
     setIsLoading(true);
-    
+
     try {
       await login(email, password);
       setSuccess('Login successful! Redirecting...');
@@ -67,21 +67,21 @@ const Login = () => {
             </Link>
           </p>
         </div>
-        
+
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center">
             <SafeIcon icon={FiAlertCircle} className="w-5 h-5 mr-2 text-red-500" />
             <span>{error}</span>
           </div>
         )}
-        
+
         {success && (
           <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center">
             <SafeIcon icon={FiCheckCircle} className="w-5 h-5 mr-2 text-green-500" />
             <span>{success}</span>
           </div>
         )}
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
@@ -105,7 +105,7 @@ const Login = () => {
                 />
               </div>
             </div>
-            
+
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
@@ -141,11 +141,11 @@ const Login = () => {
                 Remember me
               </label>
             </div>
-            
+
             <div className="text-sm">
-              <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+              <Link to="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
                 Forgot your password?
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -176,7 +176,7 @@ const Login = () => {
               <span className="px-2 bg-white text-gray-500">Or continue with</span>
             </div>
           </div>
-          
+
           <div className="mt-6 grid grid-cols-2 gap-3">
             <button
               type="button"

@@ -1,16 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
 import { useAuth } from '../contexts/AuthContext';
 
-const { FiMenu, FiSearch, FiUser, FiMessageCircle, FiBell, FiPackage, FiLogOut } = FiIcons;
+const { FiMenu, FiSearch, FiUser, FiLogOut } = FiIcons;
 
 const Header = () => {
   const navigate = useNavigate();
   const { user, logout, isLoading } = useAuth();
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = React.useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -49,119 +49,47 @@ const Header = () => {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:ml-8 md:flex md:space-x-8">
-              <Link
-                to="/marketplace"
-                className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              >
+              <Link to="/marketplace" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
                 Marketplace
               </Link>
-              <Link
-                to="/sell"
-                className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              >
+              <Link to="/sell" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
                 Sell Equipment
               </Link>
-              <Link
-                to="/pricing"
-                className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              >
+              <Link to="/pricing" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
                 Pricing
               </Link>
-              <Link
-                to="/contact"
-                className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              >
+              <Link to="/contact" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
                 Contact
               </Link>
             </nav>
           </div>
 
-          {/* Search Bar - Hidden on Mobile */}
-          <div className="hidden md:flex items-center flex-1 max-w-xs ml-8">
-            <div className="relative w-full">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <SafeIcon icon={FiSearch} className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="Search equipment..."
-              />
-            </div>
-          </div>
-
           {/* Right Side Actions */}
-          <div className="flex items-center">
-            {/* User is logged in */}
-            {!isLoading && user ? (
+          <div className="flex items-center space-x-4">
+            {/* Authentication Buttons */}
+            {isLoading ? (
+              <div className="flex items-center">
+                <div className="w-5 h-5 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
+              </div>
+            ) : user ? (
               <>
-                <Link
-                  to="/messages"
-                  className="flex items-center justify-center h-10 w-10 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
-                >
-                  <span className="sr-only">Messages</span>
-                  <SafeIcon icon={FiMessageCircle} className="h-6 w-6" />
+                <Link to="/profile" className="text-gray-500 hover:text-gray-700">
+                  <SafeIcon icon={FiUser} className="w-5 h-5" />
                 </Link>
-
-                <button
-                  className="ml-2 flex items-center justify-center h-10 w-10 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
+                <button 
+                  onClick={handleLogout}
+                  className="text-gray-500 hover:text-gray-700 font-medium"
                 >
-                  <span className="sr-only">Notifications</span>
-                  <SafeIcon icon={FiBell} className="h-6 w-6" />
+                  Logout
                 </button>
-
-                {/* Profile dropdown */}
-                <div className="ml-3 relative">
-                  <div>
-                    <button
-                      onClick={toggleProfileMenu}
-                      className="max-w-xs flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    >
-                      <span className="sr-only">Open user menu</span>
-                      <img
-                        className="h-8 w-8 rounded-full object-cover"
-                        src={user.avatar}
-                        alt={user.name}
-                      />
-                    </button>
-                  </div>
-
-                  {/* Profile dropdown menu */}
-                  {isProfileMenuOpen && (
-                    <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-10">
-                      <div className="px-4 py-2 border-b">
-                        <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                        <p className="text-sm text-gray-500 truncate">{user.email}</p>
-                      </div>
-                      <Link
-                        to="/profile"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        onClick={() => setIsProfileMenuOpen(false)}
-                      >
-                        Your Profile
-                      </Link>
-                      <Link
-                        to="/sell"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        onClick={() => setIsProfileMenuOpen(false)}
-                      >
-                        Sell Equipment
-                      </Link>
-                      <button
-                        onClick={handleLogout}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Sign out
-                      </button>
-                    </div>
-                  )}
-                </div>
               </>
-            ) : !isLoading ? (
-              /* User is not logged in */
-              <div className="flex items-center space-x-4">
-                <Link to="/login" className="text-gray-500 hover:text-gray-700 font-medium">
-                  Log in
+            ) : (
+              <>
+                <Link 
+                  to="/login" 
+                  className="text-gray-500 hover:text-gray-700 font-medium"
+                >
+                  Login
                 </Link>
                 <Link
                   to="/register"
@@ -169,16 +97,11 @@ const Header = () => {
                 >
                   Sign up
                 </Link>
-              </div>
-            ) : (
-              // Loading state
-              <div className="flex items-center space-x-4">
-                <div className="w-5 h-5 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
-              </div>
+              </>
             )}
 
             {/* Mobile menu button */}
-            <div className="flex items-center md:hidden ml-4">
+            <div className="flex items-center md:hidden">
               <button
                 onClick={toggleMenu}
                 className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
@@ -191,128 +114,41 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Mobile menu, show/hide based on menu state */}
+      {/* Mobile menu */}
       {isMenuOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 border-t border-gray-200">
-            <Link
-              to="/marketplace"
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-              onClick={() => setIsMenuOpen(false)}
-            >
+            <Link to="/marketplace" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
               Marketplace
             </Link>
-            <Link
-              to="/sell"
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-              onClick={() => setIsMenuOpen(false)}
-            >
+            <Link to="/sell" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
               Sell Equipment
             </Link>
-            <Link
-              to="/pricing"
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-              onClick={() => setIsMenuOpen(false)}
-            >
+            <Link to="/pricing" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
               Pricing
             </Link>
-            <Link
-              to="/contact"
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-              onClick={() => setIsMenuOpen(false)}
-            >
+            <Link to="/contact" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
               Contact
             </Link>
-
-            {/* Mobile search */}
-            <div className="px-3 py-2">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <SafeIcon icon={FiSearch} className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="Search equipment..."
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Mobile user menu */}
-          {!isLoading && !user ? (
-            <div className="pt-4 pb-3 border-t border-gray-200">
-              <div className="flex items-center px-5">
-                <div className="flex-shrink-0">
-                  <SafeIcon
-                    icon={FiUser}
-                    className="h-10 w-10 text-gray-400 bg-gray-100 rounded-full p-2"
-                  />
-                </div>
-                <div className="ml-3">
-                  <div className="text-base font-medium text-gray-800">Guest</div>
-                  <div className="text-sm font-medium text-gray-500">Not logged in</div>
-                </div>
-              </div>
-              <div className="mt-3 space-y-1 px-2">
-                <Link
-                  to="/login"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Log in
+            {!user && (
+              <>
+                <Link to="/login" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+                  Login
                 </Link>
-                <Link
-                  to="/register"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                  onClick={() => setIsMenuOpen(false)}
-                >
+                <Link to="/register" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
                   Sign up
                 </Link>
-              </div>
-            </div>
-          ) : !isLoading ? (
-            <div className="pt-4 pb-3 border-t border-gray-200">
-              <div className="flex items-center px-5">
-                <div className="flex-shrink-0">
-                  <img
-                    className="h-10 w-10 rounded-full object-cover"
-                    src={user.avatar}
-                    alt={user.name}
-                  />
-                </div>
-                <div className="ml-3">
-                  <div className="text-base font-medium text-gray-800">{user.name}</div>
-                  <div className="text-sm font-medium text-gray-500">{user.email}</div>
-                </div>
-              </div>
-              <div className="mt-3 space-y-1 px-2">
-                <Link
-                  to="/profile"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Your Profile
-                </Link>
-                <Link
-                  to="/messages"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Messages
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                >
-                  <div className="flex items-center">
-                    <SafeIcon icon={FiLogOut} className="mr-2 h-5 w-5" />
-                    Sign out
-                  </div>
-                </button>
-              </div>
-            </div>
-          ) : null}
+              </>
+            )}
+            {user && (
+              <button
+                onClick={handleLogout}
+                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+              >
+                Logout
+              </button>
+            )}
+          </div>
         </div>
       )}
     </header>

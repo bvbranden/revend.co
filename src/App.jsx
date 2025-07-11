@@ -13,8 +13,10 @@ import AdminSidebar from './components/AdminSidebar';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Marketplace from './pages/Marketplace';
-import ProductDetail from './pages/ProductDetail.jsx';  // Add .jsx extension
+import ProductDetail from './pages/ProductDetail.jsx'; // Add .jsx extension
 import SellEquipment from './pages/SellEquipment';
 import BatchListingForm from './pages/BatchListingForm';
 import Profile from './pages/Profile';
@@ -35,7 +37,7 @@ import SecurityControls from './pages/admin/SecurityControls';
 // Styles
 import './App.css';
 
-// Layout wrapper component 
+// Layout wrapper component
 const Layout = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
@@ -61,6 +63,8 @@ const Layout = () => {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/sell" element={<SellEquipment />} />
@@ -69,7 +73,7 @@ const Layout = () => {
             <Route path="/messages" element={<Messages />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/contact" element={<Contact />} />
-            
+
             {/* Admin Routes */}
             <Route path="/admin" element={<Dashboard />} />
             <Route path="/admin/analytics" element={<Analytics />} />

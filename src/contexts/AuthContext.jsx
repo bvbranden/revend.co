@@ -17,172 +17,73 @@ export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null);
 
   useEffect(() => {
-    // Check for active session
-    const checkSession = async () => {
-      setIsLoading(true);
-      try {
-        // Get current session
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Error getting session:', error);
-          setIsLoading(false);
-          return;
-        }
-        
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
-        
-        if (session) {
-          // Fetch user profile data
-          const { data: profile, error: profileError } = await supabase
+        setUser(session?.user ?? null);
+        setIsLoading(false);
+
+        if (session?.user) {
+          // Fetch additional user data from profiles
+          const { data: profile } = await supabase
             .from('profiles_revend')
-            .select(`*`)
+            .select('*')
             .eq('id', session.user.id)
             .single();
 
-          if (profileError) {
-            console.error('Error fetching profile:', profileError);
-            
-            // Create profile if it doesn't exist
-            if (profileError.code === 'PGRST116') {
-              const { error: insertError } = await supabase
-                .from('profiles_revend')
-                .insert({
-                  id: session.user.id,
-                  name: session.user.user_metadata?.name || 'User',
-                  email: session.user.email,
-                  company: session.user.user_metadata?.company || '',
-                  role: session.user.user_metadata?.role || 'user',
-                  is_company_admin: session.user.user_metadata?.role === 'company_admin',
-                  avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-                });
-
-              if (insertError) {
-                console.error('Error creating profile:', insertError);
-              } else {
-                // Fetch the newly created profile
-                const { data: newProfile } = await supabase
-                  .from('profiles_revend')
-                  .select(`*`)
-                  .eq('id', session.user.id)
-                  .single();
-
-                setUser({
-                  id: session.user.id,
-                  email: session.user.email,
-                  ...newProfile
-                });
-              }
-            }
-          } else {
-            // Combine auth data with profile data
-            setUser({
-              id: session.user.id,
-              email: session.user.email,
-              ...profile
-            });
+          if (profile) {
+            setUser({ ...session.user, ...profile });
           }
-        } else {
-          setUser(null);
-        }
-      } catch (error) {
-        console.error('Session check error:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkSession();
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
-        console.log('Auth state changed:', event, newSession?.user?.email);
-        
-        setSession(newSession);
-        
-        if (newSession) {
-          try {
-            // Fetch user profile data
-            const { data: profile, error: profileError } = await supabase
-              .from('profiles_revend')
-              .select(`*`)
-              .eq('id', newSession.user.id)
-              .single();
-
-            if (profileError) {
-              console.error('Error fetching profile:', profileError);
-              
-              // Create profile if it doesn't exist
-              if (profileError.code === 'PGRST116') {
-                const { error: insertError } = await supabase
-                  .from('profiles_revend')
-                  .insert({
-                    id: newSession.user.id,
-                    name: newSession.user.user_metadata?.name || 'User',
-                    email: newSession.user.email,
-                    company: newSession.user.user_metadata?.company || '',
-                    role: newSession.user.user_metadata?.role || 'user',
-                    is_company_admin: newSession.user.user_metadata?.role === 'company_admin',
-                    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-                  });
-
-                if (!insertError) {
-                  // Fetch the newly created profile
-                  const { data: newProfile } = await supabase
-                    .from('profiles_revend')
-                    .select(`*`)
-                    .eq('id', newSession.user.id)
-                    .single();
-
-                  setUser({
-                    id: newSession.user.id,
-                    email: newSession.user.email,
-                    ...newProfile
-                  });
-                }
-              }
-            } else {
-              // Combine auth data with profile data
-              setUser({
-                id: newSession.user.id,
-                email: newSession.user.email,
-                ...profile
-              });
-            }
-          } catch (error) {
-            console.error('Profile fetch error:', error);
-          }
-        } else {
-          setUser(null);
         }
       }
     );
 
-    // Cleanup subscription
     return () => {
-      subscription?.unsubscribe();
+      subscription.unsubscribe();
     };
   }, []);
 
   const login = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
+      if (error) throw error;
+
+      if (data.user) {
+        const { data: profile } = await supabase
+          .from('profiles_revend')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+
+        if (profile) {
+          setUser({ ...data.user, ...profile });
+        } else {
+          setUser(data.user);
+        }
+      }
+      return data;
+    } catch (error) {
       throw error;
     }
-    
-    return data;
   };
 
   const register = async (userData) => {
     const { name, email, password, company, role } = userData;
 
     try {
-      // Register user with Supabase Auth with auto-confirm enabled
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -192,17 +93,12 @@ export const AuthProvider = ({ children }) => {
             company,
             role,
           },
-          emailRedirectTo: window.location.origin,
         },
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      // For this application, we'll auto-login the user even without email confirmation
       if (data.user) {
-        // Create profile in profiles table
         const { error: profileError } = await supabase
           .from('profiles_revend')
           .insert({
@@ -215,51 +111,90 @@ export const AuthProvider = ({ children }) => {
             avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
           });
 
-        if (profileError) {
-          console.error('Profile creation error:', profileError);
-          throw profileError;
-        }
+        if (profileError) throw profileError;
 
-        // Auto sign-in after registration to bypass email confirmation
-        await login(email, password);
+        // Set user state immediately after successful registration
+        setUser({
+          ...data.user,
+          name,
+          company,
+          role,
+          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+        });
       }
-
       return data;
     } catch (error) {
-      console.error('Registration error:', error);
       throw error;
+    }
+  };
+
+  const resetPassword = async (email) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/#/reset-password',
+      });
+      if (error) throw error;
+      return { success: true };
+    } catch (error) {
+      console.error('Reset password error:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
+  const updatePassword = async (newPassword) => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      if (error) throw error;
+      return { success: true };
+    } catch (error) {
+      console.error('Update password error:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
+  const updateProfile = async (userData) => {
+    try {
+      // Update user data in profiles table
+      const { error } = await supabase
+        .from('profiles_revend')
+        .update({
+          name: userData.name,
+          company: userData.company,
+          role: userData.role,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      // Update local user state
+      setUser({
+        ...user,
+        name: userData.name,
+        company: userData.company,
+        role: userData.role
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error('Update profile error:', error);
+      return { success: false, error: error.message };
     }
   };
 
   const logout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Error logging out:', error);
-      }
+      if (error) throw error;
       setUser(null);
       setSession(null);
       return { success: true };
-    } catch (err) {
-      console.error('Logout error:', err);
-      return { success: false, error: err.message };
+    } catch (error) {
+      console.error('Logout error:', error);
+      return { success: false, error: error.message };
     }
-  };
-
-  // Add a method to handle email confirmation
-  const confirmEmail = async (token, email) => {
-    const { error } = await supabase.auth.verifyOtp({
-      token_hash: token,
-      type: 'email',
-      email
-    });
-
-    if (error) {
-      throw error;
-    }
-
-    // After confirmation, we should already have a session from onAuthStateChange
-    return true;
   };
 
   const value = {
@@ -268,8 +203,10 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
-    confirmEmail,
     isLoading,
+    resetPassword,
+    updatePassword,
+    updateProfile
   };
 
   return (
