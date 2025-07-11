@@ -1,8 +1,8 @@
 import React from 'react';
-import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { ProductProvider } from './contexts/ProductContext';
-import { NotificationProvider } from './contexts/NotificationContext';
+import {HashRouter as Router,Routes,Route,useLocation} from 'react-router-dom';
+import {AuthProvider} from './contexts/AuthContext';
+import {ProductProvider} from './contexts/ProductContext';
+import {NotificationProvider} from './contexts/NotificationContext';
 
 // Layout Components
 import Header from './components/Header';
@@ -25,6 +25,7 @@ import DirectLogin from './pages/DirectLogin';
 import AdminPromotion from './pages/AdminPromotion';
 import Pricing from './pages/Pricing';
 import Contact from './pages/Contact';
+import HowItWorks from './pages/HowItWorks';
 
 // Admin Pages
 import Dashboard from './pages/admin/Dashboard';
@@ -41,7 +42,9 @@ import './App.css';
 const Layout = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
-  const isSpecialRoute = location.pathname === '/direct-login' || location.pathname === '/admin-promotion';
+  const isSpecialRoute = location.pathname === '/direct-login' || 
+                        location.pathname === '/admin-promotion' ||
+                        location.pathname === '/how-it-works';
 
   // Don't show header/footer/sidebar for special routes
   if (isSpecialRoute) {
@@ -49,6 +52,7 @@ const Layout = () => {
       <Routes>
         <Route path="/direct-login" element={<DirectLogin />} />
         <Route path="/admin-promotion" element={<AdminPromotion />} />
+        <Route path="/how-it-works" element={<HowItWorks />} />
       </Routes>
     );
   }
@@ -73,7 +77,7 @@ const Layout = () => {
             <Route path="/messages" element={<Messages />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/contact" element={<Contact />} />
-
+            
             {/* Admin Routes */}
             <Route path="/admin" element={<Dashboard />} />
             <Route path="/admin/analytics" element={<Analytics />} />
@@ -99,6 +103,7 @@ function App() {
             <Routes>
               <Route path="/direct-login" element={<DirectLogin />} />
               <Route path="/admin-promotion" element={<AdminPromotion />} />
+              <Route path="/how-it-works" element={<HowItWorks />} />
               <Route path="/*" element={<Layout />} />
             </Routes>
           </Router>
