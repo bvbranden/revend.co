@@ -1,8 +1,8 @@
 import React from 'react';
-import {HashRouter as Router, Routes, Route, useLocation} from 'react-router-dom';
-import {AuthProvider} from './contexts/AuthContext';
-import {ProductProvider} from './contexts/ProductContext';
-import {NotificationProvider} from './contexts/NotificationContext';
+import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { ProductProvider } from './contexts/ProductContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 
 // Layout Components
 import Header from './components/Header';
@@ -14,7 +14,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Marketplace from './pages/Marketplace';
-import ProductDetail from './pages/ProductDetail';
+import ProductDetail from './pages/ProductDetail.jsx';  // Add .jsx extension
 import SellEquipment from './pages/SellEquipment';
 import BatchListingForm from './pages/BatchListingForm';
 import Profile from './pages/Profile';
@@ -35,7 +35,7 @@ import SecurityControls from './pages/admin/SecurityControls';
 // Styles
 import './App.css';
 
-// Layout wrapper component
+// Layout wrapper component 
 const Layout = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
@@ -69,7 +69,7 @@ const Layout = () => {
             <Route path="/messages" element={<Messages />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/contact" element={<Contact />} />
-
+            
             {/* Admin Routes */}
             <Route path="/admin" element={<Dashboard />} />
             <Route path="/admin/analytics" element={<Analytics />} />
