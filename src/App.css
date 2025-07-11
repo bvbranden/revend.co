@@ -48,3 +48,63 @@
 .form-label {
   @apply block text-sm font-medium text-gray-700 mb-1;
 }
+
+/* Why Choose revend.co Section Styles */
+.why-choose-revend-section {
+  /* Container isolation to prevent style leakage */
+  isolation: isolate;
+}
+
+.why-choose-grid {
+  /* Responsive grid layout */
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .why-choose-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .why-choose-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.why-choose-feature-block {
+  /* Individual feature block styling */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 140px;
+}
+
+.why-choose-feature-block:hover {
+  transform: translateY(-2px);
+}
+
+/* Ensure consistent icon sizing within the why choose section */
+.why-choose-revend-section .why-choose-feature-block svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 767px) {
+  .why-choose-feature-block {
+    padding: 1rem;
+  }
+  
+  .why-choose-feature-block h3 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .why-choose-feature-block p {
+    font-size: 0.875rem;
+  }
+}

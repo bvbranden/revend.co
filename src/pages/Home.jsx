@@ -5,60 +5,36 @@ import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
 import { useProducts } from '../contexts/ProductContext';
 
-const { FiArrowRight, FiShield, FiTrendingUp, FiUsers, FiGlobe, FiDollarSign, FiChevronLeft, FiChevronRight } = FiIcons;
+const { FiArrowRight, FiShield, FiTrendingUp, FiUsers, FiGlobe, FiDollarSign, FiChevronLeft, FiChevronRight, FiEye, FiCpu, FiExternalLink, FiClock, FiPercent, FiUpload, FiLock, FiUnlock, FiBarChart3, FiMessageCircle } = FiIcons;
 
 // Hero variants
 const heroVariants = {
   default: {
     headline: "The B2B Marketplace for IT Equipment",
     subheadline: "Connect with verified ITAD companies and brokers to buy and sell second-hand and new computer equipment efficiently and securely.",
-    cta: {
-      text: "Browse Marketplace",
-      link: "/marketplace"
-    },
-    secondaryCta: {
-      text: "Start Selling",
-      link: "/sell"
-    },
+    cta: { text: "Browse Marketplace", link: "/marketplace" },
+    secondaryCta: { text: "Start Selling", link: "/sell" },
     image: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=400&fit=crop"
   },
   revenue: {
     headline: "Turn Your Surplus IT Equipment Into Revenue",
     subheadline: "Join thousands of companies trading IT equipment on the leading B2B marketplace for verified ITAD companies and brokers.",
-    cta: {
-      text: "Start Selling",
-      link: "/sell"
-    },
-    secondaryCta: {
-      text: "Learn More",
-      link: "/pricing"
-    },
+    cta: { text: "Start Selling", link: "/sell" },
+    secondaryCta: { text: "Learn More", link: "/pricing" },
     image: "https://images.unsplash.com/photo-1579389083078-4e7018379f7e?w=600&h=400&fit=crop"
   },
   trust: {
     headline: "Trade IT Equipment With Confidence",
     subheadline: "Your trusted marketplace for verified ITAD companies and brokers, ensuring secure and reliable IT equipment trading.",
-    cta: {
-      text: "Join Now",
-      link: "/register"
-    },
-    secondaryCta: {
-      text: "View Features",
-      link: "/pricing"
-    },
+    cta: { text: "Join Now", link: "/register" },
+    secondaryCta: { text: "View Features", link: "/pricing" },
     image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=600&h=400&fit=crop"
   },
   value: {
     headline: "Get Maximum Value for IT Equipment",
     subheadline: "Access the largest network of verified buyers and sellers in the IT equipment trading industry.",
-    cta: {
-      text: "Explore Marketplace",
-      link: "/marketplace"
-    },
-    secondaryCta: {
-      text: "Start Trading",
-      link: "/register"
-    },
+    cta: { text: "Explore Marketplace", link: "/marketplace" },
+    secondaryCta: { text: "Start Trading", link: "/register" },
     image: "https://images.unsplash.com/photo-1573164713988-8665fc963095?w=600&h=400&fit=crop"
   }
 };
@@ -68,13 +44,12 @@ function HomePage() {
   const featuredProducts = products.slice(0, 3);
   const [currentHeroVariant, setCurrentHeroVariant] = useState('default');
   const intervalRef = useRef(null);
-  
+
   const resetInterval = () => {
     // Clear the existing interval
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
-    
     // Set a new interval
     intervalRef.current = setInterval(() => {
       const variantKeys = Object.keys(heroVariants);
@@ -83,11 +58,10 @@ function HomePage() {
       setCurrentHeroVariant(variantKeys[nextIndex]);
     }, 15000);
   };
-  
+
   useEffect(() => {
     // Set up the initial interval
     resetInterval();
-    
     // Clean up on unmount
     return () => {
       if (intervalRef.current) {
@@ -103,21 +77,51 @@ function HomePage() {
     { label: 'Monthly Volume', value: '$2M+', icon: FiDollarSign }
   ];
 
-  const features = [
+  const whyChooseFeatures = [
     {
-      icon: FiShield,
-      title: 'Verified Sellers',
-      description: 'All sellers are verified ITAD companies and certified brokers'
+      title: "Transparent Auctions",
+      description: "Open, real-time price visibility between verified companies.",
+      icon: FiEye
     },
     {
-      icon: FiTrendingUp,
-      title: 'Real-time Pricing',
-      description: 'Get competitive market prices updated in real-time'
+      title: "Tailored for IT Hardware",
+      description: "Built for desktops, laptops, servers, phones, and parts.",
+      icon: FiCpu
     },
     {
-      icon: FiUsers,
-      title: 'B2B Focus',
-      description: 'Exclusively for business-to-business transactions'
+      title: "Verified Buyers & Sellers",
+      description: "A professional network without spam or non-verified users.",
+      icon: FiShield
+    },
+    {
+      title: "Fast Turnaround",
+      description: "Upload stock and close deals in days, not weeks.",
+      icon: FiClock
+    },
+    {
+      title: "No Sales Commission",
+      description: "ReVend takes no cut from your sales — you keep the full margin.",
+      icon: FiPercent
+    },
+    {
+      title: "Batch Upload & CSV Support",
+      description: "List bulk inventory with structured, scalable input.",
+      icon: FiUpload
+    },
+    {
+      title: "Private or Public Listings",
+      description: "Control who sees your offers based on strategy.",
+      icon: FiLock
+    },
+    {
+      title: "Smart Deal History",
+      description: "Access past pricing, offer behavior, and sale patterns.",
+      icon: FiBarChart3
+    },
+    {
+      title: "Built-in Communication",
+      description: "Message verified users directly within the platform.",
+      icon: FiMessageCircle
     }
   ];
 
@@ -157,7 +161,7 @@ function HomePage() {
                 transition={{ duration: 0.5 }}
                 className="text-center lg:text-left"
               >
-                <motion.h1 
+                <motion.h1
                   className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -165,7 +169,7 @@ function HomePage() {
                 >
                   {heroVariants[currentHeroVariant].headline}
                 </motion.h1>
-                <motion.p 
+                <motion.p
                   className="text-xl text-blue-100 mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -173,7 +177,7 @@ function HomePage() {
                 >
                   {heroVariants[currentHeroVariant].subheadline}
                 </motion.p>
-                <motion.div 
+                <motion.div
                   className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -195,7 +199,7 @@ function HomePage() {
                 </motion.div>
               </motion.div>
             </AnimatePresence>
-            
+
             <div className="relative hidden lg:block">
               <AnimatePresence mode="wait">
                 <motion.div
@@ -221,17 +225,17 @@ function HomePage() {
               </AnimatePresence>
             </div>
           </div>
-          
+
           {/* Hero navigation controls - moved below the content */}
           <div className="flex justify-between items-center mt-12 px-4 mx-auto max-w-7xl">
-            <button 
+            <button
               onClick={goToPreviousVariant}
               className="p-3 rounded-full bg-blue-800 bg-opacity-50 text-white hover:bg-opacity-75 transition-colors z-20"
               aria-label="Previous hero"
             >
               <SafeIcon icon={FiChevronLeft} className="w-6 h-6" />
             </button>
-            
+
             {/* Variant indicator dots - moved to center */}
             <div className="flex space-x-4">
               {Object.keys(heroVariants).map((variant) => (
@@ -253,8 +257,8 @@ function HomePage() {
                 />
               ))}
             </div>
-            
-            <button 
+
+            <button
               onClick={goToNextVariant}
               className="p-3 rounded-full bg-blue-800 bg-opacity-50 text-white hover:bg-opacity-75 transition-colors z-20"
               aria-label="Next hero"
@@ -290,8 +294,8 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-16 bg-gray-50">
+      {/* Why Choose revend.co Section */}
+      <section className="why-choose-revend-section py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Choose revend.co</h2>
@@ -299,24 +303,50 @@ function HomePage() {
               The most trusted platform for IT equipment trading in the B2B market
             </p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
+
+          <div className="why-choose-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {whyChooseFeatures.map((feature, index) => (
               <motion.div
                 key={feature.title}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 + 0.2 }}
-                className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center"
+                className="why-choose-feature-block bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-300"
               >
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-6">
-                  <SafeIcon icon={feature.icon} className="w-8 h-8 text-blue-600" />
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0">
+                    <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg">
+                      <SafeIcon icon={feature.icon} className="w-6 h-6 text-blue-600" />
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      {feature.title}
+                    </h3>
+                    <p className="text-gray-600 text-sm leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </div>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
               </motion.div>
             ))}
           </div>
+
+          {/* Call to Action */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.2 }}
+            className="text-center mt-12"
+          >
+            <Link
+              to="/register"
+              className="inline-flex items-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm transition-colors duration-200"
+            >
+              Create Free Account
+              <SafeIcon icon={FiArrowRight} className="ml-2 w-5 h-5" />
+            </Link>
+          </motion.div>
         </div>
       </section>
 
